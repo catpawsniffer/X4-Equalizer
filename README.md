@@ -1,6 +1,6 @@
 ﻿# X4 Equalizer for Linux
 
-**A simple Python Program with Gui to Control the Equalizer of the X4 Soundblaster**
+**A simple Python Program with Gui to Control the Equalizer of the X4 Soundblaster**🐧
 
 You can only configure the Equalizer. All the fancy rest like SXFI and so is not supported. I think no one needs that stuff. And in general the X4 is fully supported by the standard drivers of Linux to play sound and set up speaker configurations and so on.
 
