@@ -1,0 +1,6 @@
+
+
+float val7 @ 0x0c;
+float val8 @ 0x12;
+float val9 @ 0x18;
+float val10 @ 0x1E;

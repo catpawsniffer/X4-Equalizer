@@ -1,0 +1,7 @@
+float preamp @ 0x16;
+float val1 @ 0x1c;
+float val2 @ 0x22;
+float val3 @ 0x28;
+float val4 @ 0x2E;
+float val5 @ 0x34;
+float val6 @ 0x3A;

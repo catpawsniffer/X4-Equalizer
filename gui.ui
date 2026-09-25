@@ -1,0 +1,712 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>820</width>
+    <height>440</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>820</width>
+    <height>440</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>820</width>
+    <height>440</height>
+   </size>
+  </property>
+  <property name="contextMenuPolicy">
+   <enum>Qt::ContextMenuPolicy::NoContextMenu</enum>
+  </property>
+  <property name="acceptDrops">
+   <bool>false</bool>
+  </property>
+  <property name="windowTitle">
+   <string notr="true">X4-Equalizer</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>logo.png</normaloff>logo.png</iconset>
+  </property>
+  <property name="accessibleName">
+   <string/>
+  </property>
+  <property name="accessibleIdentifier">
+   <string notr="true"/>
+  </property>
+  <property name="autoFillBackground">
+   <bool>false</bool>
+  </property>
+  <property name="locale">
+   <locale language="English" country="Australia"/>
+  </property>
+  <property name="windowFilePath">
+   <string notr="true"/>
+  </property>
+  <property name="iconSize">
+   <size>
+    <width>16</width>
+    <height>16</height>
+   </size>
+  </property>
+  <property name="toolButtonStyle">
+   <enum>Qt::ToolButtonStyle::ToolButtonFollowStyle</enum>
+  </property>
+  <property name="documentMode">
+   <bool>false</bool>
+  </property>
+  <property name="dockNestingEnabled">
+   <bool>false</bool>
+  </property>
+  <property name="unifiedTitleAndToolBarOnMac">
+   <bool>false</bool>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="DbHoverSlider" name="verticalSlider_1">
+    <property name="geometry">
+     <rect>
+      <x>70</x>
+      <y>70</y>
+      <width>20</width>
+      <height>261</height>
+     </rect>
+    </property>
+    <property name="toolTipDuration">
+     <number>-10</number>
+    </property>
+    <property name="statusTip">
+     <string/>
+    </property>
+    <property name="minimum">
+     <number>-90</number>
+    </property>
+    <property name="maximum">
+     <number>90</number>
+    </property>
+    <property name="singleStep">
+     <number>1</number>
+    </property>
+    <property name="pageStep">
+     <number>0</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Orientation::Vertical</enum>
+    </property>
+   </widget>
+   <widget class="DbHoverSlider" name="verticalSlider_2">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>70</y>
+      <width>20</width>
+      <height>261</height>
+     </rect>
+    </property>
+    <property name="minimum">
+     <number>-90</number>
+    </property>
+    <property name="maximum">
+     <number>90</number>
+    </property>
+    <property name="singleStep">
+     <number>0</number>
+    </property>
+    <property name="pageStep">
+     <number>0</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Orientation::Vertical</enum>
+    </property>
+   </widget>
+   <widget class="DbHoverSlider" name="verticalSlider_3">
+    <property name="geometry">
+     <rect>
+      <x>190</x>
+      <y>70</y>
+      <width>20</width>
+      <height>261</height>
+     </rect>
+    </property>
+    <property name="minimum">
+     <number>-90</number>
+    </property>
+    <property name="maximum">
+     <number>90</number>
+    </property>
+    <property name="singleStep">
+     <number>0</number>
+    </property>
+    <property name="pageStep">
+     <number>0</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Orientation::Vertical</enum>
+    </property>
+   </widget>
+   <widget class="DbHoverSlider" name="verticalSlider_4">
+    <property name="geometry">
+     <rect>
+      <x>250</x>
+      <y>70</y>
+      <width>20</width>
+      <height>261</height>
+     </rect>
+    </property>
+    <property name="minimum">
+     <number>-90</number>
+    </property>
+    <property name="maximum">
+     <number>90</number>
+    </property>
+    <property name="singleStep">
+     <number>0</number>
+    </property>
+    <property name="pageStep">
+     <number>0</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Orientation::Vertical</enum>
+    </property>
+   </widget>
+   <widget class="DbHoverSlider" name="verticalSlider_5">
+    <property name="geometry">
+     <rect>
+      <x>310</x>
+      <y>70</y>
+      <width>20</width>
+      <height>261</height>
+     </rect>
+    </property>
+    <property name="minimum">
+     <number>-90</number>
+    </property>
+    <property name="maximum">
+     <number>90</number>
+    </property>
+    <property name="singleStep">
+     <number>0</number>
+    </property>
+    <property name="pageStep">
+     <number>0</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Orientation::Vertical</enum>
+    </property>
+   </widget>
+   <widget class="DbHoverSlider" name="verticalSlider_6">
+    <property name="geometry">
+     <rect>
+      <x>370</x>
+      <y>70</y>
+      <width>20</width>
+      <height>261</height>
+     </rect>
+    </property>
+    <property name="minimum">
+     <number>-90</number>
+    </property>
+    <property name="maximum">
+     <number>90</number>
+    </property>
+    <property name="singleStep">
+     <number>0</number>
+    </property>
+    <property name="pageStep">
+     <number>0</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Orientation::Vertical</enum>
+    </property>
+   </widget>
+   <widget class="DbHoverSlider" name="verticalSlider_7">
+    <property name="geometry">
+     <rect>
+      <x>430</x>
+      <y>70</y>
+      <width>20</width>
+      <height>261</height>
+     </rect>
+    </property>
+    <property name="minimum">
+     <number>-90</number>
+    </property>
+    <property name="maximum">
+     <number>90</number>
+    </property>
+    <property name="singleStep">
+     <number>0</number>
+    </property>
+    <property name="pageStep">
+     <number>0</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Orientation::Vertical</enum>
+    </property>
+   </widget>
+   <widget class="DbHoverSlider" name="verticalSlider_8">
+    <property name="geometry">
+     <rect>
+      <x>490</x>
+      <y>70</y>
+      <width>20</width>
+      <height>261</height>
+     </rect>
+    </property>
+    <property name="minimum">
+     <number>-90</number>
+    </property>
+    <property name="maximum">
+     <number>90</number>
+    </property>
+    <property name="singleStep">
+     <number>0</number>
+    </property>
+    <property name="pageStep">
+     <number>0</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Orientation::Vertical</enum>
+    </property>
+   </widget>
+   <widget class="DbHoverSlider" name="verticalSlider_9">
+    <property name="geometry">
+     <rect>
+      <x>550</x>
+      <y>70</y>
+      <width>20</width>
+      <height>261</height>
+     </rect>
+    </property>
+    <property name="minimum">
+     <number>-90</number>
+    </property>
+    <property name="maximum">
+     <number>90</number>
+    </property>
+    <property name="singleStep">
+     <number>0</number>
+    </property>
+    <property name="pageStep">
+     <number>0</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Orientation::Vertical</enum>
+    </property>
+   </widget>
+   <widget class="DbHoverSlider" name="verticalSlider_10">
+    <property name="geometry">
+     <rect>
+      <x>610</x>
+      <y>70</y>
+      <width>20</width>
+      <height>261</height>
+     </rect>
+    </property>
+    <property name="minimum">
+     <number>-90</number>
+    </property>
+    <property name="maximum">
+     <number>90</number>
+    </property>
+    <property name="singleStep">
+     <number>0</number>
+    </property>
+    <property name="pageStep">
+     <number>0</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Orientation::Vertical</enum>
+    </property>
+   </widget>
+   <widget class="DbHoverSlider" name="verticalSlider_preamp">
+    <property name="geometry">
+     <rect>
+      <x>710</x>
+      <y>70</y>
+      <width>20</width>
+      <height>261</height>
+     </rect>
+    </property>
+    <property name="minimum">
+     <number>-120</number>
+    </property>
+    <property name="maximum">
+     <number>120</number>
+    </property>
+    <property name="singleStep">
+     <number>0</number>
+    </property>
+    <property name="pageStep">
+     <number>0</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Orientation::Vertical</enum>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_preamp">
+    <property name="geometry">
+     <rect>
+      <x>690</x>
+      <y>330</y>
+      <width>71</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Preamp</string>
+    </property>
+   </widget>
+   <widget class="Line" name="line">
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>190</y>
+      <width>681</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Orientation::Horizontal</enum>
+    </property>
+   </widget>
+   <widget class="PlotWidget" name="EqView">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>40</y>
+      <width>641</width>
+      <height>321</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="comboBox_eq">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>380</y>
+      <width>111</width>
+      <height>32</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>Equalizer 1</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Equalizer 2</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Equalizer 3</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QComboBox" name="comboBox_sphp">
+    <property name="geometry">
+     <rect>
+      <x>160</x>
+      <y>380</y>
+      <width>131</width>
+      <height>32</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>Speakers</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Headphones</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QComboBox" name="comboBox_eqonoff">
+    <property name="geometry">
+     <rect>
+      <x>320</x>
+      <y>380</y>
+      <width>121</width>
+      <height>32</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>Equalizer On</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Equalizer Off</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>340</y>
+      <width>41</width>
+      <height>18</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>31Hz</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_3">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>340</y>
+      <width>31</width>
+      <height>18</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>62Hz</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_4">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>310</y>
+      <width>31</width>
+      <height>18</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>-9dB</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_5">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>190</y>
+      <width>31</width>
+      <height>18</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>0db</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_6">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>70</y>
+      <width>31</width>
+      <height>18</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>+9dB</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_7">
+    <property name="geometry">
+     <rect>
+      <x>740</x>
+      <y>70</y>
+      <width>58</width>
+      <height>18</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>+12dB</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_8">
+    <property name="geometry">
+     <rect>
+      <x>740</x>
+      <y>310</y>
+      <width>58</width>
+      <height>18</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>-12dB</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_9">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>340</y>
+      <width>41</width>
+      <height>18</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>125Hz</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_10">
+    <property name="geometry">
+     <rect>
+      <x>240</x>
+      <y>340</y>
+      <width>41</width>
+      <height>18</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>250Hz</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_11">
+    <property name="geometry">
+     <rect>
+      <x>300</x>
+      <y>340</y>
+      <width>58</width>
+      <height>18</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>500Hz</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_12">
+    <property name="geometry">
+     <rect>
+      <x>360</x>
+      <y>340</y>
+      <width>31</width>
+      <height>18</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>1kHz</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_13">
+    <property name="geometry">
+     <rect>
+      <x>420</x>
+      <y>340</y>
+      <width>31</width>
+      <height>18</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>2kHz</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_14">
+    <property name="geometry">
+     <rect>
+      <x>480</x>
+      <y>340</y>
+      <width>31</width>
+      <height>18</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>4kHz</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_15">
+    <property name="geometry">
+     <rect>
+      <x>540</x>
+      <y>340</y>
+      <width>31</width>
+      <height>18</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>8kHz</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_16">
+    <property name="geometry">
+     <rect>
+      <x>600</x>
+      <y>340</y>
+      <width>41</width>
+      <height>18</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>16kHz</string>
+    </property>
+   </widget>
+   <zorder>EqView</zorder>
+   <zorder>label_preamp</zorder>
+   <zorder>line</zorder>
+   <zorder>verticalSlider_preamp</zorder>
+   <zorder>verticalSlider_10</zorder>
+   <zorder>verticalSlider_9</zorder>
+   <zorder>verticalSlider_8</zorder>
+   <zorder>verticalSlider_7</zorder>
+   <zorder>verticalSlider_6</zorder>
+   <zorder>verticalSlider_5</zorder>
+   <zorder>verticalSlider_4</zorder>
+   <zorder>verticalSlider_2</zorder>
+   <zorder>verticalSlider_1</zorder>
+   <zorder>comboBox_eq</zorder>
+   <zorder>comboBox_sphp</zorder>
+   <zorder>comboBox_eqonoff</zorder>
+   <zorder>label_2</zorder>
+   <zorder>label_3</zorder>
+   <zorder>label_4</zorder>
+   <zorder>label_5</zorder>
+   <zorder>label_6</zorder>
+   <zorder>label_7</zorder>
+   <zorder>label_8</zorder>
+   <zorder>label_9</zorder>
+   <zorder>label_10</zorder>
+   <zorder>label_11</zorder>
+   <zorder>label_12</zorder>
+   <zorder>label_13</zorder>
+   <zorder>label_14</zorder>
+   <zorder>label_15</zorder>
+   <zorder>label_16</zorder>
+   <zorder>verticalSlider_3</zorder>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PlotWidget</class>
+   <extends>QGraphicsView</extends>
+   <header>pyqtgraph</header>
+  </customwidget>
+  <customwidget>
+   <class>DbHoverSlider</class>
+   <extends>QSlider</extends>
+   <header>dbhoverslider</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

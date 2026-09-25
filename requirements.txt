@@ -1,0 +1,7 @@
+PySide6
+pyqtgraph
+numpy
+cryptography
+colorama
+scipy
+pyserial
