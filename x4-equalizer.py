@@ -32,7 +32,7 @@ from PySide6.QtGui import   QFont
 import numpy as np
 import pyqtgraph as pg
 
-from scipy.interpolate import * #CubicSpline
+from scipy.interpolate import * 
 
 import threading
 
@@ -90,10 +90,6 @@ prefix_10 =     bytes.fromhex("5a 12 07 01 96 14")
 # float_m12 = [000040c1]
 # float_0 =   [ba54723b]
 
-#request_preamp_value_sp =     bytes.fromhex("5a110301960a") #not sure
-#request_preamp_value_hp =     bytes.fromhex("")       
-#preamp_answer_prefix_sp =     bytes.fromhex("5a11080100960a")
-#preamp_answer_prefix_hp =     bytes.fromhex("")
 
 request_eq_1_data_speakers =  bytes.fromhex("5a170401020000") #r = 62+34
 request_eq_2_data_speakers =  bytes.fromhex("5a170401020100") #r = 62+34
@@ -115,9 +111,6 @@ eq_1_data_headphones_prefix_2 = bytes.fromhex("5a171f010200024c")
 eq_2_data_headphones_prefix_2 = bytes.fromhex("5a171f010201024c")
 eq_3_data_headphones_prefix_2 = bytes.fromhex("5a171f010202024c")
 
-#new_prefix_1 =                  bytes.fromhex("5a173b010201024c")
-#new_prefix_2 =                  bytes.fromhex("5a171f010201024c")
-#preamp 5a11080100960a
 
 select_eq_1 = bytes.fromhex("5a 1a 03 00 02 00") #response = 13 long
 select_eq_2 = bytes.fromhex("5a 1a 03 00 02 01")
@@ -152,8 +145,7 @@ answer_eq_onoff_prefix = bytes.fromhex("5a1108010096090000") #9
     
 eq_off_command = bytes.fromhex("5a120701960900000000")
 eq_on_command =  bytes.fromhex("5a12070196090000803f")
-#eq_on_ack =      bytes.fromhex("")
-#eq_off_ack =     bytes.fromhex("")
+
 
 swmode1 = bytes.fromhex("53575f4d4f4445310d0a")
 start = bytes.fromhex("5a0300") #my guess
