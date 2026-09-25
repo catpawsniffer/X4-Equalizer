@@ -1,4 +1,4 @@
-﻿# X4 Equalizer for Linux
+﻿# X4 Equalizer for Linux🐧
 
 **A simple Python Program with Gui to Control the Equalizer of the X4 Soundblaster**
 
@@ -58,12 +58,17 @@ python x4-equalizer.py
 The X4 uses some kind of challenge - response authentication so only the official software from Creative can work with the X4. or so.....
 To be honest. I used AI to get the info about the encryption and extract the secret key from CTCDC.dll (part of creative "drivers")
 
-AES-256
-GCM-Mode
-16 Byte IV-Field (random numbers)
-32 Byte Ciphertext
-16 Byte Authentication Tag
-GCM Nonce = first 12 Bytes of IV
+AES-256 
+
+GCM-Mode 
+
+16 Byte IV-Field (random numbers) 
+
+32 Byte Ciphertext 
+
+16 Byte Authentication Tag 
+
+GCM Nonce = first 12 Bytes of IV 
 ```
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
