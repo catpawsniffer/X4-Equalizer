@@ -1,6 +1,7 @@
 ﻿# X4 Equalizer for Linux
 
 **A simple Python Program with Gui to Control the Equalizer of the X4 Soundblaster**
+
 You can only configure the Equalizer. All the fancy rest like SXFI and so is not supported. I think no one needs that stuff. And in general the X4 is fully supported by the standard drivers of Linux to play sound and set up speaker configurations and so on.
 
 ![enter image description here](https://github.com/catpawsniffer/X4-Equalizer/blob/main/x4-screenshot_1.png)
@@ -22,6 +23,7 @@ Download and execute. Have fun
 ##
 
 **If you want to run the python script directly**
+
 You will need python 3 and the needed libraries/dependencies listed in requirements.txt
 Most distributions use their package manager like pacman to download these. And some allow/block you to use pip to download.
 Alternatively you can also use pip to install dependencies into a virtual environment.
@@ -52,6 +54,7 @@ python x4-equalizer.py
 ```
 ##
 **A word about the Challenge - Response Authentication**
+
 The X4 uses some kind of challenge - response authentication so only the official software from Creative can work with the X4. or so.....
 To be honest. I used AI to get the info about the encryption and extract the secret key from CTCDC.dll (part of creative "drivers")
 
