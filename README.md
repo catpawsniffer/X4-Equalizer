@@ -3,11 +3,12 @@
 **A simple Python Program with Gui to Control the Equalizer of the X4 Soundblaster**
 You can only configure the Equalizer. All the fancy rest like SXFI and so is not supported. I think no one needs that stuff. And in general the X4 is fully supported by the standard drivers of Linux to play sound and set up speaker configurations and so on.
 
-INSERT SCREENSHOT
+![enter image description here](https://github.com/catpawsniffer/X4-Equalizer/blob/main/x4-screenshot_1.png)
 
 ##
 
 **Serial Port and access rights**
+
 Make sure you have access to serial interfaces like /dev/tty* 
 The X4 will show up something like /dev/ttyACM0 (these are the serial ports over usb)
 Access is most often managed via udev rules.
@@ -16,6 +17,7 @@ I uploaded 2 udev rule files from me. I guess they work for all Arch derivations
 Or just do a dirty chmod777 on the /dev/ttyACM* to test it out...
 ##
 **I compiled everything into an executable file, including all dependencies.**
+
 Download and execute. Have fun
 ##
 
@@ -50,7 +52,7 @@ python x4-equalizer.py
 ```
 ##
 **A word about the Challenge - Response Authentication**
-The X4 uses some kind of challenge - response authentification so only the official software from Creative can work with the X4. or so.....
+The X4 uses some kind of challenge - response authentication so only the official software from Creative can work with the X4. or so.....
 To be honest. I used AI to get the info about the encryption and extract the secret key from CTCDC.dll (part of creative "drivers")
 
 AES-256
