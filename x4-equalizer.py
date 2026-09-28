@@ -180,7 +180,7 @@ def open_serial_port():
         print("X4 found at ", port)
 
 
-    ser = serial.Serial(port, timeout=2)
+    ser = serial.Serial(port, timeout=1)
     
     
     # ##################### OS Detect
@@ -213,12 +213,12 @@ def generate_response_packet(challenge_packet_: bytes) -> bytes:
     key = c_header[0:2] + STATIC_KEY_MIDDLE + c_header[2:4]
 
 
-    print(str(c_prefix))
-    print(c_header.hex(" ")) 
-    print("challenge ", challenge.hex(" "))
-    print("len challenge ", len(challenge))
-    print("key ", key.hex(" "))
-    print("len key ", len(key))
+    #print(str(c_prefix))
+    #print(c_header.hex(" ")) 
+    #print()
+    #print("len challenge ", len(challenge), " - challenge: ", challenge.hex(" "))
+    #print("key ", key.hex(" "))
+    #print("len key ", len(key))
 
 
     # Convert the 32-byte X4 challenge nonce into:
@@ -288,17 +288,17 @@ def unlock_device():
     ser.flush()
     
     challenge_packet = read_until_idle(ser)
-    
+        
     if challenge_packet == unknown_command:
         print("unknown command")
         
     if challenge_packet[0:9] == CHALLENGE_PREFIX:
         
-        print("challenge detected ###############################")
+        print("challenge detected ")
         
         response_packet = generate_response_packet(challenge_packet)
     
-        print("response: ", response_packet.hex(" "))
+        #print("response: ", response_packet.hex(" "))
 
         ser.write(response_packet)
         ser.flush()
@@ -312,20 +312,21 @@ def unlock_device():
         print("[<]", result)
 
         if b"unlock_OK" in result:
-            print("[+] X4 authentication successful ######################")
+            print("[+] X4 authentication successful ")
         else:
             print("[!] No unlock_OK received")
     
     if challenge_packet == allgood:
-        print(f"[<] allgood")
-        #print("allgood")
+        print(f"[<] X4 already unlocked")
         time.sleep(0.5)
         print(f"[>] {start.hex()!r}")
         ser.write(start)
+        ser.flush()
 
     if challenge_packet != allgood:
         
         ser.write(swmode1)
+        ser.flush()
         time.sleep(0.5)
         print(f"[>] {start.hex()!r}")
         ser.write(start)
@@ -433,32 +434,27 @@ class MainWindow(QMainWindow):
         self.plot_view()
         
         
-    def check_ack(self):
+    #def check_ack(self):
 
         #ack_reply = ser.read_until(eq_ack)
         #if ack_reply[-len(eq_ack):] == eq_ack:
         #    print ("eq ack")
         #print("ack") 
-        dummy = 0
+        #dummy = 0
         
      
     def comboBox_eqonoff_changed(self):
-        #print("comboBox_eqonoff")
-        #dummy = read_until_idle(ser)
-        #time.sleep(1)
         button_thread.active = 0
         while (button_thread.ready == 0):
             time.sleep(0.01)
         time.sleep(0.1)
-        # time.sleep(1)
-        #dummy = read_until_idle(ser)
+
         
         if self.ui.comboBox_eqonoff.currentText() == "Equalizer On":
-            #print("Equalizer On")
-            #self.ui.comboBox_sphp.setEnabled(1)
             self.ui.comboBox_eq.setEnabled(1)
             
             ser.write(eq_on_command)
+            ser.flush()
             answer = ser.read_until(answer_eq_on)
             answer = ser.read_until(eq_ack)
 
@@ -474,15 +470,13 @@ class MainWindow(QMainWindow):
             self.ui.verticalSlider_10.setEnabled(1)
             self.ui.verticalSlider_preamp.setEnabled(1)
             
-            #print("init gui")
             self.initialize_gui()
      
         if self.ui.comboBox_eqonoff.currentText() == "Equalizer Off":
             print("Equalizer Off")
-            #self.ui.comboBox_sphp.setEnabled(0)
             self.ui.comboBox_eq.setEnabled(0)
             ser.write(eq_off_command)
-            #dummy = read_until_idle(ser)
+            ser.flush()
 
             self.slider_connect_disconnect()
             self.ui.verticalSlider_1.setEnabled(0)
@@ -527,14 +521,10 @@ class MainWindow(QMainWindow):
             self.ui.verticalSlider_preamp.label.setHidden(1)
             
             
-        #ser.flush() 
         time.sleep(0.5)
-        #dummy = read_until_idle(ser)
         button_thread.active = 1
             
     def comboBox_sphp_changed(self):     
-        #dummy = read_until_idle(ser)
-        #time.sleep(1)
         
         self.ui.comboBox_eqonoff.setEnabled(0)
         self.ui.comboBox_eq.setEnabled(0)
@@ -544,137 +534,106 @@ class MainWindow(QMainWindow):
             time.sleep(0.01)
         time.sleep(0.1)
         
-        #time.sleep(1)
-        #dummy = read_until_idle(ser)
-        #print("comboBox_sphp")
-        ####dummy = read_until_idle(ser)
-        
-        #if self.ui.comboBox_eqonoff.currentIndex() == 0: #if eq on
-        
         if self.ui.comboBox_sphp.currentText() == "Speakers":
             print("Speakers selected")
-            #dummy = read_until_idle(ser)
-            ser.write(command_switch_to_speakers)  
+            ser.write(command_switch_to_speakers) 
+            ser.flush()
             answer = ser.read_until(ack_sphp_change)                   #ack_sphp
-            #if answer[-13:] == ack_sphp_change:
-            #    print ("ack_sphp_change")
-            #read_and_parse_values__little()
-            #dummy = read_until_idle(ser)   ####  
-            #print("sphp_switch ack ", answer.hex())
-            
+            if answer[-13:] == ack_sphp_change:
+                print ("ack_sphp_change")
+            else:
+                print("ack_sphp_change timeout")
+                
             if self.ui.comboBox_eqonoff.currentIndex() == 0:     #if eq is on
             
             
-                ser.write(question_which_eq_is_active)
-                #answer = ser.read(5)
+                ser.write(question_which_eq_is_active)     ### crap?
+                ser.flush()
                 answer = ser.read_until(answer_eq_x_is_active_prefix) #4
                 answer = answer_eq_x_is_active_prefix + ser.read(1)
                 
                 if answer == answer_eq_1_is_active:
+                #if self.ui.comboBox_eq.currentIndex()==0:
                     print("Equalizer 1")
-                    #dummy = read_until_idle(ser)
-                    #ser.write(request_eq_1_data_speakers)
                     self.read_and_parse_values(request_eq_1_data_speakers, eq_1_data_speakers_prefix_1, eq_1_data_speakers_prefix_2)
-                    #dummy = read_until_idle(ser)
-                    
+                
+                #if self.ui.comboBox_eq.currentIndex()==1:
                 if answer == answer_eq_2_is_active:
                     print("Equalizer 2")
-                    #dummy = read_until_idle(ser)
-                    #ser.write(request_eq_2_data_speakers)
                     self.read_and_parse_values(request_eq_2_data_speakers, eq_2_data_speakers_prefix_1, eq_2_data_speakers_prefix_2)
-                    #dummy = read_until_idle(ser)
                 
+                #if self.ui.comboBox_eq.currentIndex()==2:
                 if answer == answer_eq_3_is_active:
                     print("Equalizer 3")
-                    #dummy = read_until_idle(ser)
-                    #ser.write(request_eq_3_data_speakers)
                     self.read_and_parse_values(request_eq_3_data_speakers, eq_3_data_speakers_prefix_1, eq_3_data_speakers_prefix_2)
-                    #dummy = read_until_idle(ser)
                 
      
         if self.ui.comboBox_sphp.currentText() == "Headphones":
             print("Headphones selected")
-            #dummy = read_until_idle(ser)
-            ser.write(command_switch_to_headphones)  
+            ser.write(command_switch_to_headphones) 
+            ser.flush()
             answer = ser.read_until(ack_sphp_change)                   #ack_sphp
-            #if answer[-13:] == ack_sphp_change:
-            #    print ("ack_sphp_change")
-            #print("sphp_switch ack ", answer.hex())
-            
-            #read_and_parse_values__little()
-            #dummy = read_until_idle(ser)    
-            
-            
+            if answer[-13:] == ack_sphp_change:
+                print ("ack_sphp_change")
+            else:
+                print("ack_sphp_change timeout")
+        
+        
             if self.ui.comboBox_eqonoff.currentIndex() == 0:  #if eq is on
             
-                ser.write(question_which_eq_is_active)
-                #answer = ser.read(5)
+                ser.write(question_which_eq_is_active) ########################### crap?
+                ser.flush()
                 answer = ser.read_until(answer_eq_x_is_active_prefix) #4
                 answer = answer_eq_x_is_active_prefix + ser.read(1)
                 
+                #if self.ui.comboBox_eq.currentIndex()==0:
                 if answer == answer_eq_1_is_active:
                     print("Equalizer 1")
-                    #dummy = read_until_idle(ser)
-                    #ser.write(request_eq_1_data_headphones)
                     self.read_and_parse_values(request_eq_1_data_headphones, eq_1_data_headphones_prefix_1, eq_1_data_headphones_prefix_2)
-                    #dummy = read_until_idle(ser)
              
+                #if self.ui.comboBox_eq.currentIndex()==1:
                 if answer == answer_eq_2_is_active:
                     print("Equalizer 2")
-                    #dummy = read_until_idle(ser)
-                    #ser.write(request_eq_2_data_headphones)
                     self.read_and_parse_values(request_eq_2_data_headphones, eq_2_data_headphones_prefix_1, eq_2_data_headphones_prefix_2)
-                    #dummy = read_until_idle(ser)
-     
+                
+                #if self.ui.comboBox_eq.currentIndex()==2:
                 if answer == answer_eq_3_is_active:
                     print("Equalizer 3")
-                    #dummy = read_until_idle(ser)
-                    #ser.write(request_eq_3_data_headphones)
                     self.read_and_parse_values(request_eq_3_data_headphones, eq_3_data_headphones_prefix_1, eq_3_data_headphones_prefix_2)
-                    #dummy = read_until_idle(ser)
         
-        #ser.flush()
-        time.sleep(0.5)
-        #dummy = read_until_idle(ser)
+
+        #time.sleep(3)
         button_thread.active = 1
+        time.sleep(2)
         
         self.ui.comboBox_sphp.setEnabled(1)
         
         if self.ui.comboBox_eqonoff.currentIndex() == 0:  #if eq is on
-        #if self.ui.comboBox_eqonoff.currentText() == "Equalizer On":
             self.ui.comboBox_eq.setEnabled(1)
             self.ui.comboBox_eqonoff.setEnabled(1)
             
         if self.ui.comboBox_eqonoff.currentIndex() == 1:  #if eq is off
-        #if self.ui.comboBox_eqonoff.currentText() == "Equalizer Off":
             self.ui.comboBox_eq.setEnabled(0)
             self.ui.comboBox_eqonoff.setEnabled(1)
             
              
     def comboBox_eq_changed(self):
-        #print("combobox_eq")
-        #time.sleep(1)
-        #dummy = read_until_idle(ser)
         
         self.ui.comboBox_sphp.setEnabled(0)
         self.ui.comboBox_eqonoff.setEnabled(0)
         
         button_thread.active = 0
-        #dummy = read_until_idle(ser)
         while (button_thread.ready == 0):
             time.sleep(0.01)
         time.sleep(0.1)
-        #time.sleep(1)
-        #dummy = read_until_idle(ser)
         
         if self.ui.comboBox_eqonoff.currentIndex() == 0: #if eq on
                 
             
             if self.ui.comboBox_eq.currentText() == "Equalizer 1":
                 print("Equalizer 1")
-                #dummy = read_until_idle(ser)
                 ser.write(question_if_sp_or_hp)
-                #answer_sp_or_hp = ser.read(8)
+                ser.flush()
                 
                 answer_sp_or_hp = ser.read_until(answer_sp_or_hp_prefix) #4
                 answer_sp_or_hp = answer_sp_or_hp_prefix + ser.read(4)
@@ -686,33 +645,31 @@ class MainWindow(QMainWindow):
                     print("Speakers selected")
                     self.ui.comboBox_sphp.setCurrentIndex(0)
                     ser.write(select_eq_1)
-                    #answer = ser.read(13)
+                    ser.flush()
                     answer = ser.read_until(ack_eq_change)
-                    #if answer[-13:] == ack_eq_change:
-                    #    print ("ack_eq_change")
-                    #dummy = read_until_idle(ser)
-                    #ser.write(request_eq_1_data_speakers)
+                    if answer[-13:] == ack_eq_change:
+                        print ("ack_eq_change")
+                    else:
+                        print ("ack_eq_change timeout")
                     self.read_and_parse_values(request_eq_1_data_speakers, eq_1_data_speakers_prefix_1, eq_1_data_speakers_prefix_2)
-                    #dummy = read_until_idle(ser)
                     
                 if answer_sp_or_hp == answer_headphones:
                     print("Headphones selected")
                     self.ui.comboBox_sphp.setCurrentIndex(1)
                     ser.write(select_eq_1)
-                    #answer = ser.read(13)
+                    ser.flush()
+
                     answer = ser.read_until(ack_eq_change)
-                    #if answer[-13:] == ack_eq_change:
-                    #    print ("ack_eq_change")
-                    #dummy = read_until_idle(ser)
-                    #ser.write(request_eq_1_data_headphones)  
+                    if answer[-13:] == ack_eq_change:
+                        print ("ack_eq_change")
+                    else:
+                        print ("ack_eq_change timeout")
                     self.read_and_parse_values(request_eq_1_data_headphones, eq_1_data_headphones_prefix_1, eq_1_data_headphones_prefix_2)
-                    #dummy = read_until_idle(ser)
          
             if self.ui.comboBox_eq.currentText() == "Equalizer 2":
                 print("Equalizer 2")
-                #dummy = read_until_idle(ser)
                 ser.write(question_if_sp_or_hp)
-                #answer_sp_or_hp = ser.read(8)
+                ser.flush()
                 
                 answer_sp_or_hp = ser.read_until(answer_sp_or_hp_prefix) #4
                 answer_sp_or_hp = answer_sp_or_hp_prefix + ser.read(4)
@@ -723,34 +680,31 @@ class MainWindow(QMainWindow):
                     print("Speakers selected")
                     self.ui.comboBox_sphp.setCurrentIndex(0)
                     ser.write(select_eq_2)
-                    #answer = ser.read(13)
+                    ser.flush()
                     answer = ser.read_until(ack_eq_change)
-                    #if answer[-13:] == ack_eq_change:
-                    #    print ("ack_eq_change")  
-                    #dummy = read_until_idle(ser)
-                    #ser.write(request_eq_2_data_speakers)
+                    if answer[-13:] == ack_eq_change:
+                        print ("ack_eq_change")
+                    else:
+                        print ("ack_eq_change timeout"  )
                     self.read_and_parse_values(request_eq_2_data_speakers, eq_2_data_speakers_prefix_1, eq_2_data_speakers_prefix_2)
-                    #dummy = read_until_idle(ser)
                     
                 if answer_sp_or_hp == answer_headphones:
                     print("Headphones selected")
                     self.ui.comboBox_sphp.setCurrentIndex(1)
                     ser.write(select_eq_2)
-                    #answer = ser.read(13)
+                    ser.flush()
                     answer = ser.read_until(ack_eq_change)
-                    #if answer[-13:] == ack_eq_change:
-                    #    print ("ack_eq_change")
-                    #dummy = read_until_idle(ser)
-                    #ser.write(request_eq_2_data_headphones) 
+                    if answer[-13:] == ack_eq_change:
+                        print ("ack_eq_change")
+                    else:
+                        print ("ack_eq_change timeout")
                     self.read_and_parse_values(request_eq_2_data_headphones, eq_2_data_headphones_prefix_1, eq_2_data_headphones_prefix_2)
-                    #dummy = read_until_idle(ser)
                 
                 
             if self.ui.comboBox_eq.currentText() == "Equalizer 3":
                 print("Equalizer 3")
-                #dummy = read_until_idle(ser)
                 ser.write(question_if_sp_or_hp)
-                #answer_sp_or_hp = ser.read(8)
+                ser.flush()
                 answer_sp_or_hp = ser.read_until(answer_sp_or_hp_prefix) #4
                 answer_sp_or_hp = answer_sp_or_hp_prefix + ser.read(4)
                 
@@ -760,35 +714,27 @@ class MainWindow(QMainWindow):
                     print("Speakers selected")
                     self.ui.comboBox_sphp.setCurrentIndex(0)
                     ser.write(select_eq_3)
-                    #dummy = read_until_idle(ser)
-                    #answer = ser.read(13)
+                    ser.flush()
                     answer = ser.read_until(ack_eq_change)
-                    #if answer[-13:] == ack_eq_change:
-                    #    print ("ack_eq_change")
-                    #dummy = read_until_idle(ser)
-                    #ser.write(request_eq_3_data_speakers)
+                    if answer[-13:] == ack_eq_change:
+                        print ("ack_eq_change")
+                    else:
+                        print ("ack_eq_change timeout")
                     self.read_and_parse_values(request_eq_3_data_speakers, eq_3_data_speakers_prefix_1, eq_3_data_speakers_prefix_2)
-                    #dummy = read_until_idle(ser)
                     
                 if answer_sp_or_hp == answer_headphones:
                     print("Headphones selected")
                     self.ui.comboBox_sphp.setCurrentIndex(1)
                     ser.write(select_eq_3)
-                    #dummy = read_until_idle(ser)
-                    #answer = ser.read(13)
+                    ser.flush()
                     answer = ser.read_until(ack_eq_change)
-                    #if answer[-13:] == ack_eq_change:
-                    #    print ("ack_eq_change")
-                    #dummy = read_until_idle(ser)
-                    #ser.write(request_eq_3_data_headphones) 
+                    if answer[-13:] == ack_eq_change:
+                        print ("ack_eq_change")
+                    else:
+                        print ("ack_eq_change timeout")
                     self.read_and_parse_values(request_eq_3_data_headphones, eq_3_data_headphones_prefix_1, eq_3_data_headphones_prefix_2)
-                    #dummy = read_until_idle(ser)
                     
-            #dummy = read_until_idle(ser)  
-        
-        #ser.flush()
         time.sleep(0.5)
-        #dummy = read_until_idle(ser)
         button_thread.active = 1
         self.ui.comboBox_sphp.setEnabled(1)
         self.ui.comboBox_eqonoff.setEnabled(1)
@@ -834,10 +780,6 @@ class MainWindow(QMainWindow):
         self.value_float[0] = value
         ser.write(prefix_1 + struct.pack("<f", value))
         ser.flush()
-        #print(value)
-        #self.ui.verticalSlider_1.setStatusTip(str(value))
-        #self.ui.verticalSlider_1.setToolTip(str(value))
-        #ser.read(13)
         #self.check_ack()
         self.plot_view()
         
@@ -847,138 +789,112 @@ class MainWindow(QMainWindow):
         self.value_float[1] = value
         ser.write(prefix_2 + struct.pack("<f", value))   
         ser.flush()
-        #print(value)
-        #ser.read(13)
         #self.check_ack()
         self.plot_view()
         
     def _3_slider(self):
     
-        #print("slide")
         value = float(self.ui.verticalSlider_3.value())/10
         self.value_float[2] = value
         ser.write(prefix_3 + struct.pack("<f", value))   
         ser.flush()
-        #ser.read(13)
         #self.check_ack()
         self.plot_view()
         
     def _4_slider(self):
     
-        #print("slide")
         value = float(self.ui.verticalSlider_4.value())/10
         self.value_float[3] = value
         ser.write(prefix_4 + struct.pack("<f", value))
         ser.flush()
-        #ser.read(13)
         #self.check_ack()
         self.plot_view()
         
     def _5_slider(self):
     
-        #print("slide")
         value = float(self.ui.verticalSlider_5.value())/10
         self.value_float[4] = value
         ser.write(prefix_5 + struct.pack("<f", value)) 
         ser.flush()
-        #ser.read(13)
         #self.check_ack()
         self.plot_view()
         
     def _6_slider(self):
     
-        #print("slide")
         value = float(self.ui.verticalSlider_6.value())/10
         self.value_float[5] = value
         ser.write(prefix_6 + struct.pack("<f", value)) 
         ser.flush()
-        #ser.read(13)
         #self.check_ack()
         self.plot_view()
         
     def _7_slider(self):
     
-        #print("slide")
         value = float(self.ui.verticalSlider_7.value())/10
         self.value_float[6] = value
         ser.write(prefix_7 + struct.pack("<f", value))   
         ser.flush()
-        #ser.read(13)
         #self.check_ack()
         self.plot_view()
         
     def _8_slider(self):
     
-        #print("slide")
         value = float(self.ui.verticalSlider_8.value())/10
         self.value_float[7] = value
         ser.write(prefix_8 + struct.pack("<f", value))  
         ser.flush()
-        #ser.read(13)
         #self.check_ack()
         self.plot_view()
         
     def _9_slider(self):
     
-        #print("slide")
         value = float(self.ui.verticalSlider_9.value())/10
         self.value_float[8] = value
         ser.write(prefix_9 + struct.pack("<f", value))  
         ser.flush()
-        #ser.read(13)
         #self.check_ack()
         self.plot_view()
         
     def _10_slider(self):
     
-        #print("slide")
         value = float(self.ui.verticalSlider_10.value())/10
         self.value_float[9] = value
         ser.write(prefix_10 + struct.pack("<f", value))  
         ser.flush()
-        #ser.read(13)
         #self.check_ack()
         self.plot_view()
         
     def preamp_slider(self):
     
-        #print("slide")
         value = float(self.ui.verticalSlider_preamp.value())/10
         ser.write(preamp_prefix + struct.pack("<f", value))
         ser.flush()
-        #print(value)
-        #ser.read(13)
         #self.check_ack()
 
     def initialize_gui(self):
         
-        #time.sleep(1)
         button_thread.active = 0
         while (button_thread.ready == 0):
                 time.sleep(0.01)
         time.sleep(0.1)
-        #time.sleep(1)
-        #dummy = read_until_idle(ser)
-        #dummy = read_until_idle(ser)
+        
+        self.ui.comboBox_eqonoff.setEnabled(0)
+        self.ui.comboBox_sphp.setEnabled(0)
+        self.ui.comboBox_eq.setEnabled(0)
         
         self.ui.comboBox_eqonoff.currentIndexChanged.disconnect(self.comboBox_eqonoff_changed)
         self.ui.comboBox_sphp.currentIndexChanged.disconnect(self.comboBox_sphp_changed)
         self.ui.comboBox_eq.currentIndexChanged.disconnect(self.comboBox_eq_changed)
-
-        #EQ ON OFF ?
-        #dummy = read_until_idle(ser)
         
         ser.write(question_eq_on_off)
+        ser.flush()
         answer = ser.read_until(answer_eq_onoff_prefix)
-        #if answer[-len(answer_eq_onoff_prefix):] == answer_eq_onoff_prefix:
-        #    print("answer_eq_onoff_prefix found")
         answer = ser.read(2)
         answer = answer_eq_onoff_prefix + answer
 
         if answer == answer_eq_off:
             print("Equalizer Off")
             self.ui.comboBox_eqonoff.setCurrentIndex(1)
-            #self.ui.comboBox_sphp.setEnabled(1)
             self.ui.comboBox_eq.setEnabled(0)
             
             self.slider_connect_disconnect()
@@ -1006,7 +922,8 @@ class MainWindow(QMainWindow):
             self.ui.verticalSlider_preamp.setValue(0)
             self.slider_connect_connect()
             
-            ser.write(question_if_sp_or_hp)    
+            ser.write(question_if_sp_or_hp)  
+            ser.flush()
             answer_sp_or_hp = ser.read_until(answer_sp_or_hp_prefix) #4
             answer_sp_or_hp = answer_sp_or_hp_prefix + ser.read(4)
             
@@ -1022,25 +939,18 @@ class MainWindow(QMainWindow):
         if answer == answer_eq_on:
             print("Equalizer On")
             self.ui.comboBox_eqonoff.setCurrentIndex(0)
-            #dummy = read_until_idle(ser)
             
             ser.write(question_which_eq_is_active)
+            ser.flush()
             answer = ser.read_until(answer_eq_x_is_active_prefix)
-            #if answer[-len(answer_eq_x_is_active_prefix):] == answer_eq_x_is_active_prefix:
-            #    print("answer_eq_x_is_active_prefix")
             answer = ser.read(5)
             answer = answer_eq_x_is_active_prefix + answer
             
             if answer == answer_eq_1_is_active:
                 print("Equalizer 1")
-                #dummy = read_until_idle(ser)
-                
-                #ser.write(select_eq_1)
-                #answer = ser.read_until(ack_eq_change)
-                #if answer == ack_eq_change:
-                #    print ("ack_eq_change")
                     
-                ser.write(question_if_sp_or_hp)    
+                ser.write(question_if_sp_or_hp) 
+                ser.flush()
                 answer_sp_or_hp = ser.read_until(answer_sp_or_hp_prefix) #4
                 answer_sp_or_hp = answer_sp_or_hp_prefix + ser.read(4)
                 
@@ -1049,36 +959,18 @@ class MainWindow(QMainWindow):
                 if answer_sp_or_hp == answer_speakers:
                     print("Speakers selected")
                     self.ui.comboBox_sphp.setCurrentIndex(0)
-                    #ser.write(select_eq_1)
-                    #answer = ser.read_until(ack_eq_change)
-                    #if answer == ack_eq_change:
-                    #    print ("ack_eq_change")
-                    #dummy = read_until_idle(ser)
-                    #ser.write(request_eq_1_data_speakers)
                     self.read_and_parse_values(request_eq_1_data_speakers, eq_1_data_speakers_prefix_1, eq_1_data_speakers_prefix_2)
                     
                 if answer_sp_or_hp == answer_headphones:
                     print("Headphones selected")
                     self.ui.comboBox_sphp.setCurrentIndex(1)
-                    #ser.write(select_eq_1)
-                    #answer = ser.read_until(ack_eq_change)
-                    #if answer == ack_eq_change:
-                    #    print ("ack_eq_change")
-                    #dummy = read_until_idle(ser)
-                    #ser.write(request_eq_1_data_headphones)  
                     self.read_and_parse_values(request_eq_1_data_headphones, eq_1_data_headphones_prefix_1, eq_1_data_headphones_prefix_2)
                 
             if answer == answer_eq_2_is_active:
                 print("Equalizer 2")
-                #dummy = read_until_idle(ser)
-                
-                #ser.write(select_eq_2)
-                #answer = ser.read_until(ack_eq_change)
-                #if answer == ack_eq_change:
-                #    print ("ack_eq_change")
-
 
                 ser.write(question_if_sp_or_hp)
+                ser.flush()
                 answer_sp_or_hp = ser.read_until(answer_sp_or_hp_prefix) #4
                 answer_sp_or_hp = answer_sp_or_hp_prefix + ser.read(4)
                 
@@ -1087,35 +979,18 @@ class MainWindow(QMainWindow):
                 if answer_sp_or_hp == answer_speakers:
                     print("Speakers selected")
                     self.ui.comboBox_sphp.setCurrentIndex(0)
-                    #ser.write(select_eq_2)
-                    #answer = ser.read_until(ack_eq_change)
-                    #if answer == ack_eq_change:
-                    #    print ("ack_eq_change")
-                    #dummy = read_until_idle(ser)
-                    #ser.write(request_eq_2_data_speakers)
                     self.read_and_parse_values(request_eq_2_data_speakers, eq_2_data_speakers_prefix_1, eq_2_data_speakers_prefix_2)
                     
                 if answer_sp_or_hp == answer_headphones:
                     print("Headphones selected")
                     self.ui.comboBox_sphp.setCurrentIndex(1)
-                    #ser.write(select_eq_2)
-                    #answer = ser.read_until(ack_eq_change)
-                    #if answer == ack_eq_change:
-                    #   print ("ack_eq_change")
-                    #dummy = read_until_idle(ser)
-                    #ser.write(request_eq_2_data_headphones) 
                     self.read_and_parse_values(request_eq_2_data_headphones, eq_2_data_headphones_prefix_1, eq_2_data_headphones_prefix_2)
             
             if answer == answer_eq_3_is_active:
                 print("Equalizer 3")
-                #dummy = read_until_idle(ser)
-                
-                #ser.write(select_eq_3)
-                #answer = ser.read_until(ack_eq_change)
-                #if answer == ack_eq_change:
-                #    print ("ack_eq_change")
                     
                 ser.write(question_if_sp_or_hp)
+                ser.flush()
                 answer_sp_or_hp = ser.read_until(answer_sp_or_hp_prefix) #4
                 answer_sp_or_hp = answer_sp_or_hp_prefix + ser.read(4)
                 
@@ -1124,23 +999,11 @@ class MainWindow(QMainWindow):
                 if answer_sp_or_hp == answer_speakers:
                     print("Speakers selected")
                     self.ui.comboBox_sphp.setCurrentIndex(0)
-                    #ser.write(select_eq_3)
-                    #answer = ser.read_until(ack_eq_change)
-                    #if answer == ack_eq_change:
-                    #    print ("ack_eq_change")
-                    #dummy = read_until_idle(ser)
-                    #ser.write(request_eq_3_data_speakers)
                     self.read_and_parse_values(request_eq_3_data_speakers, eq_3_data_speakers_prefix_1, eq_3_data_speakers_prefix_2)
                     
                 if answer_sp_or_hp == answer_headphones:
                     print("Headphones selected")
                     self.ui.comboBox_sphp.setCurrentIndex(1)
-                    #ser.write(select_eq_3)
-                    #answer = ser.read_until(ack_eq_change)
-                    #if answer == ack_eq_change:
-                    #    print ("ack_eq_change")
-                    #dummy = read_until_idle(ser)
-                    #ser.write(request_eq_3_data_headphones) 
                     self.read_and_parse_values(request_eq_3_data_headphones, eq_3_data_headphones_prefix_1, eq_3_data_headphones_prefix_2)
         
         self.ui.comboBox_eqonoff.currentIndexChanged.connect(self.comboBox_eqonoff_changed)
@@ -1148,8 +1011,12 @@ class MainWindow(QMainWindow):
         self.ui.comboBox_eq.currentIndexChanged.connect(self.comboBox_eq_changed)
         
         
-        time.sleep(0.2)
-        #dummy = read_until_idle(ser)
+        time.sleep(0.5)
+        
+        self.ui.comboBox_eqonoff.setEnabled(1)
+        self.ui.comboBox_sphp.setEnabled(1)
+        self.ui.comboBox_eq.setEnabled(1)
+        
         button_thread.active = 1
     
     def slider_connect_disconnect(self):
@@ -1200,9 +1067,6 @@ class MainWindow(QMainWindow):
         # float val8 @ 0x12;
         # float val9 @ 0x18;
         # float val10 @ 0x1E;
-
-                
-        #print("##########################################  start ")
 
         ser.write(data_to_write)
         ser.flush()        
@@ -1298,7 +1162,7 @@ class button_thread_(threading.Thread):   # just a thread which reads serial and
     active = 1
     ready = 1
 
-    buffer = collections.deque(maxlen=500)
+    buffer = collections.deque(maxlen=200)
     
     
     def __init__(self):
@@ -1312,7 +1176,7 @@ class button_thread_(threading.Thread):   # just a thread which reads serial and
         return end_items
         
     def buffer_delete(self): # fills it up with "0"
-        for i in range (0, 500):
+        for i in range (0, 200):
             self.buffer.append(b'00')
         
     def run(self): 
@@ -1326,24 +1190,19 @@ class button_thread_(threading.Thread):   # just a thread which reads serial and
             self.ready = 0
                         
             if self.active == 1:
-                #byte = ser.read(1)
-                #if byte:
-                #    self.buffer.append(byte)
-            
-            
+                          
                 try:
-                    byte = ser.read(1)
-                    if byte:
+                    if ser.in_waiting > 0:
+                        byte = ser.read(1)
+                        #if byte:
                         self.buffer.append(byte)
                 except:
-                    print("serial port exception")     #when i resume from hibernation of my pc i get error messages about the serial port not beeing ready and so on.... 
-                    ser.close()         #and this dirty fix works for me
-                    time.sleep(5)       #and unlocks X4 again after hibernation
+                    print("serial port exception")      #when i resume from hibernation of my pc i get error messages about the serial port not beeing ready and so on.... 
+                    ser.close()                         #and this dirty fix works for me
+                    time.sleep(5)                       #and unlocks X4 again after hibernation
                     open_serial_port()
-                    input_after_hib = ser.read(500)
-                    #print("input after hibernation: ", input_after_hib.hex())
                     unlock_device()
-                    print("except end")
+                    print("serial port exception end")
                     
             self.ready = 1
             
