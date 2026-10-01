@@ -26,8 +26,11 @@ import os
 
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtWidgets import QApplication, QMainWindow, QFrame, QLabel
-from PySide6.QtCore import  QRect, Qt
-from PySide6.QtGui import   QFont
+from PySide6.QtCore import QRect, Qt
+from PySide6.QtGui import QFont, QColor
+from PySide6.QtWidgets import QWidget
+from PySide6.QtCore import QTimer
+
 
 import numpy as np
 import pyqtgraph as pg
@@ -43,6 +46,8 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from serial.tools import list_ports
 
 from ui_gui  import Ui_MainWindow
+
+from spinner import WaitingSpinner
 
 
 
@@ -430,9 +435,35 @@ class MainWindow(QMainWindow):
         self.ui.EqView.setBackground('w')
         self.ui.EqView.hideButtons()
 
+    
+        # self.ui.waitingspinner=WaitingSpinner(
+        # self,
+        # roundness=100.0,
+        # fade=80.0,
+        # radius=70,
+        # lines=23,
+        # line_length=22,
+        # line_width=7,
+        # speed=1.5707963267948966,
+        # disable_parent_when_spinning = False,
+        # center_on_parent = True,
+        # color = QColor(0, 85, 0)
+        # )
+
+        # self.ui.waitingspinner.start()
+        
+        
+        # self.pick_timer = QTimer()
+        # self.pick_timer.setInterval(1)
+        # self.pick_timer.timeout.connect(self.ui.waitingspinner._rotate)
+        # self.pick_timer.start()
 
         self.plot_view()
         
+    # def update(self):
+        # app.processEvents()
+        # self.pick_timer.start()
+        # print("hey")
         
     #def check_ack(self):
 
@@ -444,6 +475,13 @@ class MainWindow(QMainWindow):
         
      
     def comboBox_eqonoff_changed(self):
+        
+        self.ui.comboBox_eqonoff.setEnabled(0)
+        self.ui.comboBox_eq.setEnabled(0)        
+        self.ui.comboBox_sphp.setEnabled(0)
+        app.processEvents()
+        
+        
         button_thread.active = 0
         while (button_thread.ready == 0):
             time.sleep(0.01)
@@ -471,6 +509,9 @@ class MainWindow(QMainWindow):
             self.ui.verticalSlider_preamp.setEnabled(1)
             
             self.initialize_gui()
+            #self.ui.comboBox_eqonoff.setEnabled(1)     
+            #self.ui.comboBox_sphp.setEnabled(1)
+            time.sleep(0.5)
      
         if self.ui.comboBox_eqonoff.currentText() == "Equalizer Off":
             print("Equalizer Off")
@@ -519,15 +560,30 @@ class MainWindow(QMainWindow):
             self.ui.verticalSlider_9.label.setHidden(1)
             self.ui.verticalSlider_10.label.setHidden(1)
             self.ui.verticalSlider_preamp.label.setHidden(1)
+            time.sleep(0.5)
+            self.ui.comboBox_eqonoff.setEnabled(1)      
+            self.ui.comboBox_sphp.setEnabled(1)
             
             
-        time.sleep(0.5)
+        #time.sleep(0.5)
+        #self.ui.comboBox_eqonoff.setEnabled(1)
+        #self.ui.comboBox_eq.setEnabled(1)        
+        #self.ui.comboBox_sphp.setEnabled(1)
+
+        
         button_thread.active = 1
             
     def comboBox_sphp_changed(self):     
         
+        #self.ui.waitingspinner.start()
+        
+        
+        
         self.ui.comboBox_eqonoff.setEnabled(0)
-        self.ui.comboBox_eq.setEnabled(0)
+        self.ui.comboBox_eq.setEnabled(0)        
+        self.ui.comboBox_sphp.setEnabled(0)
+        time.sleep(0.1)
+        app.processEvents()
         
         button_thread.active = 0
         while (button_thread.ready == 0):
@@ -615,12 +671,17 @@ class MainWindow(QMainWindow):
         if self.ui.comboBox_eqonoff.currentIndex() == 1:  #if eq is off
             self.ui.comboBox_eq.setEnabled(0)
             self.ui.comboBox_eqonoff.setEnabled(1)
-            
+        
+        #self.ui.waitingspinner.stop()
              
     def comboBox_eq_changed(self):
         
-        self.ui.comboBox_sphp.setEnabled(0)
         self.ui.comboBox_eqonoff.setEnabled(0)
+        self.ui.comboBox_eq.setEnabled(0)        
+        self.ui.comboBox_sphp.setEnabled(0)
+        #app.processEvents()
+        QApplication.processEvents()
+        
         
         button_thread.active = 0
         while (button_thread.ready == 0):
@@ -736,8 +797,11 @@ class MainWindow(QMainWindow):
                     
         time.sleep(0.5)
         button_thread.active = 1
-        self.ui.comboBox_sphp.setEnabled(1)
+
         self.ui.comboBox_eqonoff.setEnabled(1)
+        self.ui.comboBox_eq.setEnabled(1)        
+        self.ui.comboBox_sphp.setEnabled(1)
+
         
     def plot_view(self):
     
@@ -872,6 +936,11 @@ class MainWindow(QMainWindow):
         #self.check_ack()
 
     def initialize_gui(self):
+    
+        #self.ui.comboBox_eqonoff.setEnabled(0)
+        #self.ui.comboBox_eq.setEnabled(0)        
+        #self.ui.comboBox_sphp.setEnabled(0)
+        #app.processEvents()
         
         button_thread.active = 0
         while (button_thread.ready == 0):
