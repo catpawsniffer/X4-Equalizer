@@ -30,6 +30,7 @@ from PySide6.QtCore import QRect, Qt
 from PySide6.QtGui import QFont, QColor
 from PySide6.QtWidgets import QWidget
 from PySide6.QtCore import QTimer
+from PySide6.QtCore import Signal
 
 
 import numpy as np
@@ -179,10 +180,10 @@ def open_serial_port():
             port = device.device
             break
     if port == None:
-        print("X4 not found or serial port not accessible")
+        print("[I] X4 not found or serial port not accessible")
 
     if port != None:            
-        print("X4 found at ", port)
+        print("[I] X4 found at ", port)
 
 
     ser = serial.Serial(port, timeout=1)
@@ -216,14 +217,6 @@ def generate_response_packet(challenge_packet_: bytes) -> bytes:
 
 
     key = c_header[0:2] + STATIC_KEY_MIDDLE + c_header[2:4]
-
-
-    #print(str(c_prefix))
-    #print(c_header.hex(" ")) 
-    #print()
-    #print("len challenge ", len(challenge), " - challenge: ", challenge.hex(" "))
-    #print("key ", key.hex(" "))
-    #print("len key ", len(key))
 
 
     # Convert the 32-byte X4 challenge nonce into:
@@ -299,7 +292,7 @@ def unlock_device():
         
     if challenge_packet[0:9] == CHALLENGE_PREFIX:
         
-        print("challenge detected ")
+        print("[+] Challenge detected ")
         
         response_packet = generate_response_packet(challenge_packet)
     
@@ -322,7 +315,7 @@ def unlock_device():
             print("[!] No unlock_OK received")
     
     if challenge_packet == allgood:
-        print(f"[<] X4 already unlocked")
+        print(f"[+] X4 already unlocked")
         time.sleep(0.5)
         print(f"[>] {start.hex()!r}")
         ser.write(start)
@@ -371,8 +364,19 @@ def read_until_idle(ser, idle_time=0.25, overall_timeout=1):
 class MainWindow(QMainWindow):
  
     value_float = [0]*11   #value of the sliders
-    timeout_counter = 0
- 
+    #timeout_counter = 0
+         
+    #signals     
+    enable_disable_eq_combobox_signal = Signal(bool)
+    connect_disconnect_sliders_signal = Signal(bool)
+    connect_disconnect_comboboxes_signal = Signal(bool)
+    hide_labels_signal = Signal()
+    recieve_slider_values_signal = Signal(list) #11
+    comboBox_eqonoff_index_signal = Signal(int)
+    comboBox_sphp_index_signal = Signal(int)
+    comboBox_eq_index_signal = Signal(int)
+    waiting_spinner_signal = Signal(bool)
+    enable_sliders_signal = Signal(bool)
  
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -435,120 +439,130 @@ class MainWindow(QMainWindow):
         self.ui.EqView.setBackground('w')
         self.ui.EqView.hideButtons()
 
-    
-        # self.ui.waitingspinner=WaitingSpinner(
-        # self,
-        # roundness=100.0,
-        # fade=80.0,
-        # radius=70,
-        # lines=23,
-        # line_length=22,
-        # line_width=7,
-        # speed=1.5707963267948966,
-        # disable_parent_when_spinning = False,
-        # center_on_parent = True,
-        # color = QColor(0, 85, 0)
-        # )
-
-        # self.ui.waitingspinner.start()
-        
-        
-        # self.pick_timer = QTimer()
-        # self.pick_timer.setInterval(1)
-        # self.pick_timer.timeout.connect(self.ui.waitingspinner._rotate)
-        # self.pick_timer.start()
-
         self.plot_view()
         
-    # def update(self):
-        # app.processEvents()
-        # self.pick_timer.start()
-        # print("hey")
+    
+        self.ui.waitingspinner=WaitingSpinner(
+        self,
+        roundness=100.0,
+        fade=80.0,
+        radius=70,
+        lines=23,
+        line_length=22,
+        line_width=7,
+        speed=1.5707963267948966,
+        disable_parent_when_spinning = True,
+        center_on_parent = True,
+        color = QColor(0, 85, 0)
+        )
         
-    #def check_ack(self):
+        # print(self.ui.EqView.x(), " ", self.ui.EqView.y())
+        # #20   40
+        # print(self.ui.EqView.width(), " ", self.ui.EqView.height())
+        # #641   321
 
-        #ack_reply = ser.read_until(eq_ack)
-        #if ack_reply[-len(eq_ack):] == eq_ack:
-        #    print ("eq ack")
-        #print("ack") 
-        #dummy = 0
+        # print(self.ui.centralwidget.width(), " ", self.ui.centralwidget.height())
+        # #820 440
         
-     
-    def comboBox_eqonoff_changed(self):
-        
-        self.ui.comboBox_eqonoff.setEnabled(0)
-        self.ui.comboBox_eq.setEnabled(0)        
-        self.ui.comboBox_sphp.setEnabled(0)
-        app.processEvents()
-        
-        
-        button_thread.active = 0
-        while (button_thread.ready == 0):
-            time.sleep(0.01)
-        time.sleep(0.1)
+        # #spinner spinner width  184   #   spinner height  184
 
         
-        if self.ui.comboBox_eqonoff.currentText() == "Equalizer On":
+        # #distance between whole window and graph window   820 440
+        #159   79
+        
+        #print("x ", 820 -(641+20))
+        #print("y ", 440 -(321+40))
+        self.ui.waitingspinner.offset_x = (159-40)/2   #119/2=59,5     #59
+        self.ui.waitingspinner.offset_y = (79-40)/2    #39/2=19.5      #20
+         
+        #self.ui.waitingspinner.start()
+        
+        #signals
+        self.enable_sliders_signal.connect(self.enable_sliders)
+        self.comboBox_eqonoff_index_signal.connect(self.comboBox_eqonoff_index)
+        self.comboBox_sphp_index_signal.connect(self.comboBox_sphp_index)
+        self.comboBox_eq_index_signal.connect(self.comboBox_eq_index) 
+        self.waiting_spinner_signal.connect(self.waiting_spinner)
+        self.enable_disable_eq_combobox_signal.connect(self.enable_disable_eq_combobox)  
+        self.connect_disconnect_sliders_signal.connect(self.connect_disconnect_sliders)
+        self.connect_disconnect_comboboxes_signal.connect(self.connect_disconnect_comboboxes)
+        self.hide_labels_signal.connect(self.hide_labels)
+        self.recieve_slider_values_signal.connect(self.recieve_slider_values)
+       
+       
+    def enable_sliders(self, val: bool):
+            prog.ui.verticalSlider_1.setEnabled(val)
+            prog.ui.verticalSlider_2.setEnabled(val)
+            prog.ui.verticalSlider_3.setEnabled(val)
+            prog.ui.verticalSlider_4.setEnabled(val)
+            prog.ui.verticalSlider_5.setEnabled(val)
+            prog.ui.verticalSlider_6.setEnabled(val)
+            prog.ui.verticalSlider_7.setEnabled(val)
+            prog.ui.verticalSlider_8.setEnabled(val)
+            prog.ui.verticalSlider_9.setEnabled(val)
+            prog.ui.verticalSlider_10.setEnabled(val)
+            prog.ui.verticalSlider_preamp.setEnabled(val)
+
+       
+    def comboBox_eqonoff_index(self, index: int):
+        self.ui.comboBox_eqonoff.setCurrentIndex(index)
+    
+    
+    def comboBox_sphp_index(self, index: int):
+       self.ui.comboBox_sphp.setCurrentIndex(index)
+       
+       
+    def comboBox_eq_index(self, index: int):
+       self.ui.comboBox_eq.setCurrentIndex(index)
+       
+       
+    def waiting_spinner(self, val:bool):
+        if val == True:
+            self.ui.waitingspinner.start()
+        if val == False:
+            self.ui.waitingspinner.stop()
+       
+       
+    def recieve_slider_values(self, val: list):
+        
+        self.ui.verticalSlider_1.setValue(val[0]*10)
+        self.ui.verticalSlider_2.setValue(val[1]*10)
+        self.ui.verticalSlider_3.setValue(val[2]*10)
+        self.ui.verticalSlider_4.setValue(val[3]*10)
+        self.ui.verticalSlider_5.setValue(val[4]*10)
+        self.ui.verticalSlider_6.setValue(val[5]*10)
+        self.ui.verticalSlider_7.setValue(val[6]*10)
+        self.ui.verticalSlider_8.setValue(val[7]*10)
+        self.ui.verticalSlider_9.setValue(val[8]*10)
+        self.ui.verticalSlider_10.setValue(val[9]*10)
+        self.ui.verticalSlider_preamp.setValue(val[10]*10)
+        
+        self.value_float = val
+        self.plot_view()
+        
+        
+    def enable_disable_eq_combobox(self, enable: bool):
+        if enable == True:
             self.ui.comboBox_eq.setEnabled(1)
-            
-            ser.write(eq_on_command)
-            ser.flush()
-            answer = ser.read_until(answer_eq_on)
-            answer = ser.read_until(eq_ack)
-
-            self.ui.verticalSlider_1.setEnabled(1)
-            self.ui.verticalSlider_2.setEnabled(1)
-            self.ui.verticalSlider_3.setEnabled(1)
-            self.ui.verticalSlider_4.setEnabled(1)
-            self.ui.verticalSlider_5.setEnabled(1)
-            self.ui.verticalSlider_6.setEnabled(1)
-            self.ui.verticalSlider_7.setEnabled(1)
-            self.ui.verticalSlider_8.setEnabled(1)
-            self.ui.verticalSlider_9.setEnabled(1)
-            self.ui.verticalSlider_10.setEnabled(1)
-            self.ui.verticalSlider_preamp.setEnabled(1)
-            
-            self.initialize_gui()
-            #self.ui.comboBox_eqonoff.setEnabled(1)     
-            #self.ui.comboBox_sphp.setEnabled(1)
-            time.sleep(0.5)
-     
-        if self.ui.comboBox_eqonoff.currentText() == "Equalizer Off":
-            print("Equalizer Off")
+        if enable == False:
             self.ui.comboBox_eq.setEnabled(0)
-            ser.write(eq_off_command)
-            ser.flush()
-
-            self.slider_connect_disconnect()
-            self.ui.verticalSlider_1.setEnabled(0)
-            self.ui.verticalSlider_1.setValue(0)
-            self.ui.verticalSlider_2.setEnabled(0)
-            self.ui.verticalSlider_2.setValue(0)
-            self.ui.verticalSlider_3.setEnabled(0)
-            self.ui.verticalSlider_3.setValue(0)
-            self.ui.verticalSlider_4.setEnabled(0)
-            self.ui.verticalSlider_4.setValue(0)
-            self.ui.verticalSlider_5.setEnabled(0)
-            self.ui.verticalSlider_5.setValue(0)
-            self.ui.verticalSlider_6.setEnabled(0)
-            self.ui.verticalSlider_6.setValue(0)
-            self.ui.verticalSlider_7.setEnabled(0)
-            self.ui.verticalSlider_7.setValue(0)
-            self.ui.verticalSlider_8.setEnabled(0)
-            self.ui.verticalSlider_8.setValue(0)
-            self.ui.verticalSlider_9.setEnabled(0)
-            self.ui.verticalSlider_9.setValue(0)
-            self.ui.verticalSlider_10.setEnabled(0)
-            self.ui.verticalSlider_10.setValue(0)
-            self.ui.verticalSlider_preamp.setEnabled(0)
-            self.ui.verticalSlider_preamp.setValue(0)
-            self.slider_connect_connect()
-            for i in range(0, 11):
-                self.value_float[i] = float(0)
+        
+        
+    def connect_disconnect_comboboxes(self, connect: bool):
             
-            #print([ '%.1f' % elem for elem in self.value_float ]) #round list to x.x
-            self.plot_view()
-            
+        if connect == True:
+            self.ui.comboBox_eqonoff.currentIndexChanged.connect(self.comboBox_eqonoff_changed)
+            self.ui.comboBox_sphp.currentIndexChanged.connect(self.comboBox_sphp_changed)
+            self.ui.comboBox_eq.currentIndexChanged.connect(self.comboBox_eq_changed)
+    
+        if connect == False:
+            self.ui.comboBox_eqonoff.currentIndexChanged.disconnect(self.comboBox_eqonoff_changed)
+            self.ui.comboBox_sphp.currentIndexChanged.disconnect(self.comboBox_sphp_changed)
+            self.ui.comboBox_eq.currentIndexChanged.disconnect(self.comboBox_eq_changed)
+        
+        
+    
+    def hide_labels(self):
             self.ui.verticalSlider_1.label.setHidden(1)
             self.ui.verticalSlider_2.label.setHidden(1)
             self.ui.verticalSlider_3.label.setHidden(1)
@@ -560,248 +574,58 @@ class MainWindow(QMainWindow):
             self.ui.verticalSlider_9.label.setHidden(1)
             self.ui.verticalSlider_10.label.setHidden(1)
             self.ui.verticalSlider_preamp.label.setHidden(1)
-            time.sleep(0.5)
-            self.ui.comboBox_eqonoff.setEnabled(1)      
-            self.ui.comboBox_sphp.setEnabled(1)
-            
-            
-        #time.sleep(0.5)
-        #self.ui.comboBox_eqonoff.setEnabled(1)
-        #self.ui.comboBox_eq.setEnabled(1)        
-        #self.ui.comboBox_sphp.setEnabled(1)
+    
+    def connect_disconnect_sliders(self, connect: bool):
+
+        if connect == False:
+            self.ui.verticalSlider_preamp.valueChanged.disconnect(self.preamp_slider)
+            self.ui.verticalSlider_1.valueChanged.disconnect(self._1_slider)
+            self.ui.verticalSlider_2.valueChanged.disconnect(self._2_slider)
+            self.ui.verticalSlider_3.valueChanged.disconnect(self._3_slider)
+            self.ui.verticalSlider_4.valueChanged.disconnect(self._4_slider)
+            self.ui.verticalSlider_5.valueChanged.disconnect(self._5_slider)
+            self.ui.verticalSlider_6.valueChanged.disconnect(self._6_slider)
+            self.ui.verticalSlider_7.valueChanged.disconnect(self._7_slider)
+            self.ui.verticalSlider_8.valueChanged.disconnect(self._8_slider)
+            self.ui.verticalSlider_9.valueChanged.disconnect(self._9_slider)
+            self.ui.verticalSlider_10.valueChanged.disconnect(self._10_slider)
+
+        if connect == True:
+            self.ui.verticalSlider_preamp.valueChanged.connect(self.preamp_slider)
+            self.ui.verticalSlider_1.valueChanged.connect(self._1_slider)
+            self.ui.verticalSlider_2.valueChanged.connect(self._2_slider)
+            self.ui.verticalSlider_3.valueChanged.connect(self._3_slider)
+            self.ui.verticalSlider_4.valueChanged.connect(self._4_slider)
+            self.ui.verticalSlider_5.valueChanged.connect(self._5_slider)
+            self.ui.verticalSlider_6.valueChanged.connect(self._6_slider)
+            self.ui.verticalSlider_7.valueChanged.connect(self._7_slider)
+            self.ui.verticalSlider_8.valueChanged.connect(self._8_slider)
+            self.ui.verticalSlider_9.valueChanged.connect(self._9_slider)
+            self.ui.verticalSlider_10.valueChanged.connect(self._10_slider)
+    
 
         
-        button_thread.active = 1
-            
-    def comboBox_sphp_changed(self):     
         
-        #self.ui.waitingspinner.start()
-        
-        
-        
-        self.ui.comboBox_eqonoff.setEnabled(0)
-        self.ui.comboBox_eq.setEnabled(0)        
-        self.ui.comboBox_sphp.setEnabled(0)
-        time.sleep(0.1)
-        app.processEvents()
-        
-        button_thread.active = 0
-        while (button_thread.ready == 0):
-            time.sleep(0.01)
-        time.sleep(0.1)
-        
-        if self.ui.comboBox_sphp.currentText() == "Speakers":
-            print("Speakers selected")
-            ser.write(command_switch_to_speakers) 
-            ser.flush()
-            answer = ser.read_until(ack_sphp_change)                   #ack_sphp
-            if answer[-13:] == ack_sphp_change:
-                print ("ack_sphp_change")
-            else:
-                print("ack_sphp_change timeout")
-                
-            if self.ui.comboBox_eqonoff.currentIndex() == 0:     #if eq is on
-            
-            
-                ser.write(question_which_eq_is_active)     ### crap?
-                ser.flush()
-                answer = ser.read_until(answer_eq_x_is_active_prefix) #4
-                answer = answer_eq_x_is_active_prefix + ser.read(1)
-                
-                if answer == answer_eq_1_is_active:
-                #if self.ui.comboBox_eq.currentIndex()==0:
-                    print("Equalizer 1")
-                    self.read_and_parse_values(request_eq_1_data_speakers, eq_1_data_speakers_prefix_1, eq_1_data_speakers_prefix_2)
-                
-                #if self.ui.comboBox_eq.currentIndex()==1:
-                if answer == answer_eq_2_is_active:
-                    print("Equalizer 2")
-                    self.read_and_parse_values(request_eq_2_data_speakers, eq_2_data_speakers_prefix_1, eq_2_data_speakers_prefix_2)
-                
-                #if self.ui.comboBox_eq.currentIndex()==2:
-                if answer == answer_eq_3_is_active:
-                    print("Equalizer 3")
-                    self.read_and_parse_values(request_eq_3_data_speakers, eq_3_data_speakers_prefix_1, eq_3_data_speakers_prefix_2)
-                
      
-        if self.ui.comboBox_sphp.currentText() == "Headphones":
-            print("Headphones selected")
-            ser.write(command_switch_to_headphones) 
-            ser.flush()
-            answer = ser.read_until(ack_sphp_change)                   #ack_sphp
-            if answer[-13:] == ack_sphp_change:
-                print ("ack_sphp_change")
-            else:
-                print("ack_sphp_change timeout")
-        
-        
-            if self.ui.comboBox_eqonoff.currentIndex() == 0:  #if eq is on
-            
-                ser.write(question_which_eq_is_active) ########################### crap?
-                ser.flush()
-                answer = ser.read_until(answer_eq_x_is_active_prefix) #4
-                answer = answer_eq_x_is_active_prefix + ser.read(1)
-                
-                #if self.ui.comboBox_eq.currentIndex()==0:
-                if answer == answer_eq_1_is_active:
-                    print("Equalizer 1")
-                    self.read_and_parse_values(request_eq_1_data_headphones, eq_1_data_headphones_prefix_1, eq_1_data_headphones_prefix_2)
-             
-                #if self.ui.comboBox_eq.currentIndex()==1:
-                if answer == answer_eq_2_is_active:
-                    print("Equalizer 2")
-                    self.read_and_parse_values(request_eq_2_data_headphones, eq_2_data_headphones_prefix_1, eq_2_data_headphones_prefix_2)
-                
-                #if self.ui.comboBox_eq.currentIndex()==2:
-                if answer == answer_eq_3_is_active:
-                    print("Equalizer 3")
-                    self.read_and_parse_values(request_eq_3_data_headphones, eq_3_data_headphones_prefix_1, eq_3_data_headphones_prefix_2)
-        
+    def comboBox_eqonoff_changed(self):
+        self.ui.waitingspinner.start()
+        communications_thread.eq_onoff = 1
 
-        #time.sleep(3)
-        button_thread.active = 1
-        time.sleep(2)
-        
-        self.ui.comboBox_sphp.setEnabled(1)
-        
-        if self.ui.comboBox_eqonoff.currentIndex() == 0:  #if eq is on
-            self.ui.comboBox_eq.setEnabled(1)
-            self.ui.comboBox_eqonoff.setEnabled(1)
-            
-        if self.ui.comboBox_eqonoff.currentIndex() == 1:  #if eq is off
-            self.ui.comboBox_eq.setEnabled(0)
-            self.ui.comboBox_eqonoff.setEnabled(1)
-        
-        #self.ui.waitingspinner.stop()
+    
+    def comboBox_sphp_changed(self):     
+        self.ui.waitingspinner.start()
+        communications_thread.hpsp_change = 1
+
              
     def comboBox_eq_changed(self):
-        
-        self.ui.comboBox_eqonoff.setEnabled(0)
-        self.ui.comboBox_eq.setEnabled(0)        
-        self.ui.comboBox_sphp.setEnabled(0)
-        #app.processEvents()
-        QApplication.processEvents()
-        
-        
-        button_thread.active = 0
-        while (button_thread.ready == 0):
-            time.sleep(0.01)
-        time.sleep(0.1)
-        
-        if self.ui.comboBox_eqonoff.currentIndex() == 0: #if eq on
-                
-            
-            if self.ui.comboBox_eq.currentText() == "Equalizer 1":
-                print("Equalizer 1")
-                ser.write(question_if_sp_or_hp)
-                ser.flush()
-                
-                answer_sp_or_hp = ser.read_until(answer_sp_or_hp_prefix) #4
-                answer_sp_or_hp = answer_sp_or_hp_prefix + ser.read(4)
-                
-                
-                self.ui.comboBox_eq.setCurrentIndex(0)
-                
-                if answer_sp_or_hp == answer_speakers:
-                    print("Speakers selected")
-                    self.ui.comboBox_sphp.setCurrentIndex(0)
-                    ser.write(select_eq_1)
-                    ser.flush()
-                    answer = ser.read_until(ack_eq_change)
-                    if answer[-13:] == ack_eq_change:
-                        print ("ack_eq_change")
-                    else:
-                        print ("ack_eq_change timeout")
-                    self.read_and_parse_values(request_eq_1_data_speakers, eq_1_data_speakers_prefix_1, eq_1_data_speakers_prefix_2)
-                    
-                if answer_sp_or_hp == answer_headphones:
-                    print("Headphones selected")
-                    self.ui.comboBox_sphp.setCurrentIndex(1)
-                    ser.write(select_eq_1)
-                    ser.flush()
+        self.ui.waitingspinner.start()
+        communications_thread.eq_change = 1
 
-                    answer = ser.read_until(ack_eq_change)
-                    if answer[-13:] == ack_eq_change:
-                        print ("ack_eq_change")
-                    else:
-                        print ("ack_eq_change timeout")
-                    self.read_and_parse_values(request_eq_1_data_headphones, eq_1_data_headphones_prefix_1, eq_1_data_headphones_prefix_2)
-         
-            if self.ui.comboBox_eq.currentText() == "Equalizer 2":
-                print("Equalizer 2")
-                ser.write(question_if_sp_or_hp)
-                ser.flush()
-                
-                answer_sp_or_hp = ser.read_until(answer_sp_or_hp_prefix) #4
-                answer_sp_or_hp = answer_sp_or_hp_prefix + ser.read(4)
-                
-                self.ui.comboBox_eq.setCurrentIndex(1)
-                
-                if answer_sp_or_hp == answer_speakers:
-                    print("Speakers selected")
-                    self.ui.comboBox_sphp.setCurrentIndex(0)
-                    ser.write(select_eq_2)
-                    ser.flush()
-                    answer = ser.read_until(ack_eq_change)
-                    if answer[-13:] == ack_eq_change:
-                        print ("ack_eq_change")
-                    else:
-                        print ("ack_eq_change timeout"  )
-                    self.read_and_parse_values(request_eq_2_data_speakers, eq_2_data_speakers_prefix_1, eq_2_data_speakers_prefix_2)
-                    
-                if answer_sp_or_hp == answer_headphones:
-                    print("Headphones selected")
-                    self.ui.comboBox_sphp.setCurrentIndex(1)
-                    ser.write(select_eq_2)
-                    ser.flush()
-                    answer = ser.read_until(ack_eq_change)
-                    if answer[-13:] == ack_eq_change:
-                        print ("ack_eq_change")
-                    else:
-                        print ("ack_eq_change timeout")
-                    self.read_and_parse_values(request_eq_2_data_headphones, eq_2_data_headphones_prefix_1, eq_2_data_headphones_prefix_2)
-                
-                
-            if self.ui.comboBox_eq.currentText() == "Equalizer 3":
-                print("Equalizer 3")
-                ser.write(question_if_sp_or_hp)
-                ser.flush()
-                answer_sp_or_hp = ser.read_until(answer_sp_or_hp_prefix) #4
-                answer_sp_or_hp = answer_sp_or_hp_prefix + ser.read(4)
-                
-                self.ui.comboBox_eq.setCurrentIndex(2)
-                
-                if answer_sp_or_hp == answer_speakers:
-                    print("Speakers selected")
-                    self.ui.comboBox_sphp.setCurrentIndex(0)
-                    ser.write(select_eq_3)
-                    ser.flush()
-                    answer = ser.read_until(ack_eq_change)
-                    if answer[-13:] == ack_eq_change:
-                        print ("ack_eq_change")
-                    else:
-                        print ("ack_eq_change timeout")
-                    self.read_and_parse_values(request_eq_3_data_speakers, eq_3_data_speakers_prefix_1, eq_3_data_speakers_prefix_2)
-                    
-                if answer_sp_or_hp == answer_headphones:
-                    print("Headphones selected")
-                    self.ui.comboBox_sphp.setCurrentIndex(1)
-                    ser.write(select_eq_3)
-                    ser.flush()
-                    answer = ser.read_until(ack_eq_change)
-                    if answer[-13:] == ack_eq_change:
-                        print ("ack_eq_change")
-                    else:
-                        print ("ack_eq_change timeout")
-                    self.read_and_parse_values(request_eq_3_data_headphones, eq_3_data_headphones_prefix_1, eq_3_data_headphones_prefix_2)
-                    
-        time.sleep(0.5)
-        button_thread.active = 1
-
-        self.ui.comboBox_eqonoff.setEnabled(1)
-        self.ui.comboBox_eq.setEnabled(1)        
-        self.ui.comboBox_sphp.setEnabled(1)
-
+        
+    def initialize_gui(self):
+        self.ui.waitingspinner.start()
+        communications_thread.init_gui = 1
+       
         
     def plot_view(self):
     
@@ -935,190 +759,34 @@ class MainWindow(QMainWindow):
         ser.flush()
         #self.check_ack()
 
-    def initialize_gui(self):
+
     
-        #self.ui.comboBox_eqonoff.setEnabled(0)
-        #self.ui.comboBox_eq.setEnabled(0)        
-        #self.ui.comboBox_sphp.setEnabled(0)
-        #app.processEvents()
-        
-        button_thread.active = 0
-        while (button_thread.ready == 0):
-                time.sleep(0.01)
-        time.sleep(0.1)
-        
-        self.ui.comboBox_eqonoff.setEnabled(0)
-        self.ui.comboBox_sphp.setEnabled(0)
-        self.ui.comboBox_eq.setEnabled(0)
-        
-        self.ui.comboBox_eqonoff.currentIndexChanged.disconnect(self.comboBox_eqonoff_changed)
-        self.ui.comboBox_sphp.currentIndexChanged.disconnect(self.comboBox_sphp_changed)
-        self.ui.comboBox_eq.currentIndexChanged.disconnect(self.comboBox_eq_changed)
-        
-        ser.write(question_eq_on_off)
-        ser.flush()
-        answer = ser.read_until(answer_eq_onoff_prefix)
-        answer = ser.read(2)
-        answer = answer_eq_onoff_prefix + answer
+#################################################################        
 
-        if answer == answer_eq_off:
-            print("Equalizer Off")
-            self.ui.comboBox_eqonoff.setCurrentIndex(1)
-            self.ui.comboBox_eq.setEnabled(0)
-            
-            self.slider_connect_disconnect()
-            self.ui.verticalSlider_1.setEnabled(0)
-            self.ui.verticalSlider_1.setValue(0)
-            self.ui.verticalSlider_2.setEnabled(0)
-            self.ui.verticalSlider_2.setValue(0)
-            self.ui.verticalSlider_3.setEnabled(0)
-            self.ui.verticalSlider_3.setValue(0)
-            self.ui.verticalSlider_4.setEnabled(0)
-            self.ui.verticalSlider_4.setValue(0)
-            self.ui.verticalSlider_5.setEnabled(0)
-            self.ui.verticalSlider_5.setValue(0)
-            self.ui.verticalSlider_6.setEnabled(0)
-            self.ui.verticalSlider_6.setValue(0)
-            self.ui.verticalSlider_7.setEnabled(0)
-            self.ui.verticalSlider_7.setValue(0)
-            self.ui.verticalSlider_8.setEnabled(0)
-            self.ui.verticalSlider_8.setValue(0)
-            self.ui.verticalSlider_9.setEnabled(0)
-            self.ui.verticalSlider_9.setValue(0)
-            self.ui.verticalSlider_10.setEnabled(0)
-            self.ui.verticalSlider_10.setValue(0)
-            self.ui.verticalSlider_preamp.setEnabled(0)
-            self.ui.verticalSlider_preamp.setValue(0)
-            self.slider_connect_connect()
-            
-            ser.write(question_if_sp_or_hp)  
-            ser.flush()
-            answer_sp_or_hp = ser.read_until(answer_sp_or_hp_prefix) #4
-            answer_sp_or_hp = answer_sp_or_hp_prefix + ser.read(4)
-            
-            if answer_sp_or_hp == answer_speakers:
-                print("Speakers selected")
-                self.ui.comboBox_sphp.setCurrentIndex(0)
-            if answer_sp_or_hp == answer_headphones:
-                print("Headphones selected")
-                self.ui.comboBox_sphp.setCurrentIndex(1)
-            
-            
-            
-        if answer == answer_eq_on:
-            print("Equalizer On")
-            self.ui.comboBox_eqonoff.setCurrentIndex(0)
-            
-            ser.write(question_which_eq_is_active)
-            ser.flush()
-            answer = ser.read_until(answer_eq_x_is_active_prefix)
-            answer = ser.read(5)
-            answer = answer_eq_x_is_active_prefix + answer
-            
-            if answer == answer_eq_1_is_active:
-                print("Equalizer 1")
-                    
-                ser.write(question_if_sp_or_hp) 
-                ser.flush()
-                answer_sp_or_hp = ser.read_until(answer_sp_or_hp_prefix) #4
-                answer_sp_or_hp = answer_sp_or_hp_prefix + ser.read(4)
-                
-                self.ui.comboBox_eq.setCurrentIndex(0)
-                
-                if answer_sp_or_hp == answer_speakers:
-                    print("Speakers selected")
-                    self.ui.comboBox_sphp.setCurrentIndex(0)
-                    self.read_and_parse_values(request_eq_1_data_speakers, eq_1_data_speakers_prefix_1, eq_1_data_speakers_prefix_2)
-                    
-                if answer_sp_or_hp == answer_headphones:
-                    print("Headphones selected")
-                    self.ui.comboBox_sphp.setCurrentIndex(1)
-                    self.read_and_parse_values(request_eq_1_data_headphones, eq_1_data_headphones_prefix_1, eq_1_data_headphones_prefix_2)
-                
-            if answer == answer_eq_2_is_active:
-                print("Equalizer 2")
-
-                ser.write(question_if_sp_or_hp)
-                ser.flush()
-                answer_sp_or_hp = ser.read_until(answer_sp_or_hp_prefix) #4
-                answer_sp_or_hp = answer_sp_or_hp_prefix + ser.read(4)
-                
-                self.ui.comboBox_eq.setCurrentIndex(1)
-                
-                if answer_sp_or_hp == answer_speakers:
-                    print("Speakers selected")
-                    self.ui.comboBox_sphp.setCurrentIndex(0)
-                    self.read_and_parse_values(request_eq_2_data_speakers, eq_2_data_speakers_prefix_1, eq_2_data_speakers_prefix_2)
-                    
-                if answer_sp_or_hp == answer_headphones:
-                    print("Headphones selected")
-                    self.ui.comboBox_sphp.setCurrentIndex(1)
-                    self.read_and_parse_values(request_eq_2_data_headphones, eq_2_data_headphones_prefix_1, eq_2_data_headphones_prefix_2)
-            
-            if answer == answer_eq_3_is_active:
-                print("Equalizer 3")
-                    
-                ser.write(question_if_sp_or_hp)
-                ser.flush()
-                answer_sp_or_hp = ser.read_until(answer_sp_or_hp_prefix) #4
-                answer_sp_or_hp = answer_sp_or_hp_prefix + ser.read(4)
-                
-                self.ui.comboBox_eq.setCurrentIndex(2)
-                
-                if answer_sp_or_hp == answer_speakers:
-                    print("Speakers selected")
-                    self.ui.comboBox_sphp.setCurrentIndex(0)
-                    self.read_and_parse_values(request_eq_3_data_speakers, eq_3_data_speakers_prefix_1, eq_3_data_speakers_prefix_2)
-                    
-                if answer_sp_or_hp == answer_headphones:
-                    print("Headphones selected")
-                    self.ui.comboBox_sphp.setCurrentIndex(1)
-                    self.read_and_parse_values(request_eq_3_data_headphones, eq_3_data_headphones_prefix_1, eq_3_data_headphones_prefix_2)
-        
-        self.ui.comboBox_eqonoff.currentIndexChanged.connect(self.comboBox_eqonoff_changed)
-        self.ui.comboBox_sphp.currentIndexChanged.connect(self.comboBox_sphp_changed)
-        self.ui.comboBox_eq.currentIndexChanged.connect(self.comboBox_eq_changed)
-        
-        
-        time.sleep(0.5)
-        
-        self.ui.comboBox_eqonoff.setEnabled(1)
-        self.ui.comboBox_sphp.setEnabled(1)
-        self.ui.comboBox_eq.setEnabled(1)
-        
-        button_thread.active = 1
+class communications_thread_(threading.Thread):   # 
+ 
+    loop=1
+    #active = 1
+    #ready = 1
+    timeout_counter = 0
     
-    def slider_connect_disconnect(self):
-
-
-        self.ui.verticalSlider_preamp.valueChanged.disconnect(self.preamp_slider)
-        self.ui.verticalSlider_1.valueChanged.disconnect(self._1_slider)
-        self.ui.verticalSlider_2.valueChanged.disconnect(self._2_slider)
-        self.ui.verticalSlider_3.valueChanged.disconnect(self._3_slider)
-        self.ui.verticalSlider_4.valueChanged.disconnect(self._4_slider)
-        self.ui.verticalSlider_5.valueChanged.disconnect(self._5_slider)
-        self.ui.verticalSlider_6.valueChanged.disconnect(self._6_slider)
-        self.ui.verticalSlider_7.valueChanged.disconnect(self._7_slider)
-        self.ui.verticalSlider_8.valueChanged.disconnect(self._8_slider)
-        self.ui.verticalSlider_9.valueChanged.disconnect(self._9_slider)
-        self.ui.verticalSlider_10.valueChanged.disconnect(self._10_slider)
-
-    def slider_connect_connect(self):
-
-        self.ui.verticalSlider_preamp.valueChanged.connect(self.preamp_slider)
-        self.ui.verticalSlider_1.valueChanged.connect(self._1_slider)
-        self.ui.verticalSlider_2.valueChanged.connect(self._2_slider)
-        self.ui.verticalSlider_3.valueChanged.connect(self._3_slider)
-        self.ui.verticalSlider_4.valueChanged.connect(self._4_slider)
-        self.ui.verticalSlider_5.valueChanged.connect(self._5_slider)
-        self.ui.verticalSlider_6.valueChanged.connect(self._6_slider)
-        self.ui.verticalSlider_7.valueChanged.connect(self._7_slider)
-        self.ui.verticalSlider_8.valueChanged.connect(self._8_slider)
-        self.ui.verticalSlider_9.valueChanged.connect(self._9_slider)
-        self.ui.verticalSlider_10.valueChanged.connect(self._10_slider)
+    value_float = [0]*11   #value of the sliders
     
+    eq_change = 0
+    hpsp_change = 0
+    eq_onoff = 0
+    init_gui = 0
+
+    buffer = collections.deque(maxlen=200)
+    
+    
+    def __init__(self):
+        threading.Thread.__init__(self)
+        super(self.__class__, self).__init__()
+     
     
     def read_and_parse_values(self, data_to_write: bytes, eq_prefix_1: bytes, eq_prefix_2: bytes):
+    
         
         ###################### 
         # OFFSETS    float with 4 bytes
@@ -1182,61 +850,451 @@ class MainWindow(QMainWindow):
             for i in range(0, 11):
                 self.value_float[i] = struct.unpack('f', value_bytes[i])[0]   #make floats from 4 bytes
 
-            #print([ '%.1f' % elem for elem in self.value_float ]) #round list to x.x
+            #print([ '%.1f' % elem for elem in prog.value_float ]) #round list to x.x
             
-            self.slider_connect_disconnect()
+            #prog.slider_connect_disconnect()
+            prog.connect_disconnect_sliders_signal.emit(0)
             
-            self.ui.verticalSlider_1.setValue(self.value_float[0]*10)
-            self.ui.verticalSlider_2.setValue(self.value_float[1]*10)
-            self.ui.verticalSlider_3.setValue(self.value_float[2]*10)
-            self.ui.verticalSlider_4.setValue(self.value_float[3]*10)
-            self.ui.verticalSlider_5.setValue(self.value_float[4]*10)
-            self.ui.verticalSlider_6.setValue(self.value_float[5]*10)
-            self.ui.verticalSlider_7.setValue(self.value_float[6]*10)
-            self.ui.verticalSlider_8.setValue(self.value_float[7]*10)
-            self.ui.verticalSlider_9.setValue(self.value_float[8]*10)
-            self.ui.verticalSlider_10.setValue(self.value_float[9]*10)
-            self.ui.verticalSlider_preamp.setValue(self.value_float[10]*10)
+            prog.recieve_slider_values_signal.emit(self.value_float)
+                       
+            prog.connect_disconnect_sliders_signal.emit(1)
             
-            self.plot_view()
-            
-            self.slider_connect_connect()
+            prog.hide_labels_signal.emit()
+  
   
 
         else:
             self.timeout_counter = self.timeout_counter +1
-            print("##### bug #####")
+            print("[E] ##### bug #####")
             time.sleep(1)
             self.initialize_gui()
         
-        self.ui.verticalSlider_1.label.setHidden(1)
-        self.ui.verticalSlider_2.label.setHidden(1)
-        self.ui.verticalSlider_3.label.setHidden(1)
-        self.ui.verticalSlider_4.label.setHidden(1)
-        self.ui.verticalSlider_5.label.setHidden(1)
-        self.ui.verticalSlider_6.label.setHidden(1)
-        self.ui.verticalSlider_7.label.setHidden(1)
-        self.ui.verticalSlider_8.label.setHidden(1)
-        self.ui.verticalSlider_9.label.setHidden(1)
-        self.ui.verticalSlider_10.label.setHidden(1)
-        self.ui.verticalSlider_preamp.label.setHidden(1)    
+        prog.hide_labels_signal.emit()
 
-    
-    
-#################################################################        
 
-class button_thread_(threading.Thread):   # just a thread which reads serial and captures buttons of the X4
- 
-    loop=1
-    active = 1
-    ready = 1
+    def initialize_gui(self):  #check
+    
+        #print("init-----")        
+        time.sleep(0.1)
+        
+        
+        prog.connect_disconnect_comboboxes_signal.emit(0)
+        
+        ser.write(question_eq_on_off)
+        ser.flush()
+        answer = ser.read_until(answer_eq_onoff_prefix)
+        answer = ser.read(2)
+        answer = answer_eq_onoff_prefix + answer
 
-    buffer = collections.deque(maxlen=200)
-    
-    
-    def __init__(self):
-        threading.Thread.__init__(self)
-        super(self.__class__, self).__init__()
+        if answer == answer_eq_off:
+            print("[I] Equalizer Off")
+            
+            prog.comboBox_eqonoff_index_signal.emit(1)
+            prog.enable_disable_eq_combobox_signal.emit(0)
+            
+            zerolist = [float(0)]*11
+            prog.connect_disconnect_sliders_signal.emit(0)
+            
+            prog.recieve_slider_values_signal.emit(zerolist)
+            prog.enable_sliders_signal.emit(0)
+            
+            prog.connect_disconnect_sliders_signal.emit(1)
+            
+            ser.write(question_if_sp_or_hp)  
+            ser.flush()
+            answer_sp_or_hp = ser.read_until(answer_sp_or_hp_prefix) #4
+            answer_sp_or_hp = answer_sp_or_hp_prefix + ser.read(4)
+            
+            if answer_sp_or_hp == answer_speakers:
+                print("[I] Speakers selected")
+                prog.comboBox_sphp_index_signal.emit(0)
+                #prog.ui.comboBox_sphp.setCurrentIndex(0)
+            if answer_sp_or_hp == answer_headphones:
+                print("[I] Headphones selected")
+                prog.comboBox_sphp_index_signal.emit(1)
+                #prog.ui.comboBox_sphp.setCurrentIndex(1)
+            
+            
+            
+        if answer == answer_eq_on:
+            print("[I] Equalizer On")
+            prog.enable_sliders_signal.emit(1)
+            
+            #prog.ui.comboBox_eqonoff.setCurrentIndex(0)
+            
+            ser.write(question_which_eq_is_active)
+            ser.flush()
+            answer = ser.read_until(answer_eq_x_is_active_prefix)
+            answer = ser.read(5)
+            answer = answer_eq_x_is_active_prefix + answer
+            
+            if answer == answer_eq_1_is_active:
+                print("[I] Equalizer 1")
+                    
+                ser.write(question_if_sp_or_hp) 
+                ser.flush()
+                answer_sp_or_hp = ser.read_until(answer_sp_or_hp_prefix) #4
+                answer_sp_or_hp = answer_sp_or_hp_prefix + ser.read(4)
+                
+                prog.comboBox_eq_index_signal.emit(0)
+                #prog.ui.comboBox_eq.setCurrentIndex(0)
+                
+                if answer_sp_or_hp == answer_speakers:
+                    print("[I] Speakers selected")
+                    prog.comboBox_sphp_index_signal.emit(0)
+                    #prog.ui.comboBox_sphp.setCurrentIndex(0)
+                    self.read_and_parse_values(request_eq_1_data_speakers, eq_1_data_speakers_prefix_1, eq_1_data_speakers_prefix_2)
+                    
+                if answer_sp_or_hp == answer_headphones:
+                    print("[I] Headphones selected")
+                    prog.comboBox_sphp_index_signal.emit(1)
+                    #prog.ui.comboBox_sphp.setCurrentIndex(1)
+                    self.read_and_parse_values(request_eq_1_data_headphones, eq_1_data_headphones_prefix_1, eq_1_data_headphones_prefix_2)
+                
+            if answer == answer_eq_2_is_active:
+                print("[I] Equalizer 2")
+
+                ser.write(question_if_sp_or_hp)
+                ser.flush()
+                answer_sp_or_hp = ser.read_until(answer_sp_or_hp_prefix) #4
+                answer_sp_or_hp = answer_sp_or_hp_prefix + ser.read(4)
+                
+                prog.comboBox_eq_index_signal.emit(1)
+                #prog.ui.comboBox_eq.setCurrentIndex(1)
+                
+                if answer_sp_or_hp == answer_speakers:
+                    print("[I] Speakers selected")
+                    prog.comboBox_sphp_index_signal.emit(0)
+                    #prog.ui.comboBox_sphp.setCurrentIndex(0)
+                    self.read_and_parse_values(request_eq_2_data_speakers, eq_2_data_speakers_prefix_1, eq_2_data_speakers_prefix_2)
+                    
+                if answer_sp_or_hp == answer_headphones:
+                    print("[I] Headphones selected")
+                    prog.comboBox_sphp_index_signal.emit(1)
+                    #prog.ui.comboBox_sphp.setCurrentIndex(1)
+                    self.read_and_parse_values(request_eq_2_data_headphones, eq_2_data_headphones_prefix_1, eq_2_data_headphones_prefix_2)
+            
+            if answer == answer_eq_3_is_active:
+                print("[I] Equalizer 3")
+                    
+                ser.write(question_if_sp_or_hp)
+                ser.flush()
+                answer_sp_or_hp = ser.read_until(answer_sp_or_hp_prefix) #4
+                answer_sp_or_hp = answer_sp_or_hp_prefix + ser.read(4)
+                
+                prog.comboBox_eq_index_signal.emit(2)
+                #prog.ui.comboBox_eq.setCurrentIndex(2)
+                
+                if answer_sp_or_hp == answer_speakers:
+                    print("[I] Speakers selected")
+                    prog.comboBox_sphp_index_signal.emit(0)
+                    #prog.ui.comboBox_sphp.setCurrentIndex(0)
+                    self.read_and_parse_values(request_eq_3_data_speakers, eq_3_data_speakers_prefix_1, eq_3_data_speakers_prefix_2)
+                    
+                if answer_sp_or_hp == answer_headphones:
+                    print("[I] Headphones selected")
+                    prog.comboBox_sphp_index_signal.emit(1)
+                    #prog.ui.comboBox_sphp.setCurrentIndex(1)
+                    self.read_and_parse_values(request_eq_3_data_headphones, eq_3_data_headphones_prefix_1, eq_3_data_headphones_prefix_2)
+        
+        #prog.ui.comboBox_eqonoff.currentIndexChanged.connect(prog.comboBox_eqonoff_changed)
+        #prog.ui.comboBox_sphp.currentIndexChanged.connect(prog.comboBox_sphp_changed)
+        #prog.ui.comboBox_eq.currentIndexChanged.connect(prog.comboBox_eq_changed)
+        
+        prog.connect_disconnect_comboboxes_signal.emit(1)
+        
+        time.sleep(0.5)
+       
+        prog.waiting_spinner_signal.emit(0) 
+        
+       
+    def comboBox_eq_changed(self):
+        #print("eqch-----")
+        # prog.ui.comboBox_eqonoff.setEnabled(0)
+        # prog.ui.comboBox_eq.setEnabled(0)        
+        # prog.ui.comboBox_sphp.setEnabled(0)
+        #app.processEvents()
+        #QApplication.processEvents()
+        
+        
+        # button_thread.active = 0
+        # while (button_thread.ready == 0):
+            # time.sleep(0.01)
+        # time.sleep(0.1)
+        
+        if prog.ui.comboBox_eqonoff.currentIndex() == 0: #if eq on
+            print("-----")    
+            
+            if prog.ui.comboBox_eq.currentText() == "Equalizer 1":
+                print("[I] Equalizer 1")
+                ser.write(question_if_sp_or_hp)
+                ser.flush()
+                
+                answer_sp_or_hp = ser.read_until(answer_sp_or_hp_prefix) #4
+                answer_sp_or_hp = answer_sp_or_hp_prefix + ser.read(4)
+                
+                
+                #prog.ui.comboBox_eq.setCurrentIndex(0)
+                prog.comboBox_eq_index_signal.emit(0)
+                
+                if answer_sp_or_hp == answer_speakers:
+                    print("[I] Speakers selected")
+                    #prog.ui.comboBox_sphp.setCurrentIndex(0)
+                    prog.comboBox_sphp_index_signal.emit(0)
+                    ser.write(select_eq_1)
+                    ser.flush()
+                    answer = ser.read_until(ack_eq_change)
+                    if answer[-13:] == ack_eq_change:
+                        print ("[A] ack_eq_change")
+                    else:
+                        print ("[E] ack_eq_change timeout")
+                    self.read_and_parse_values(request_eq_1_data_speakers, eq_1_data_speakers_prefix_1, eq_1_data_speakers_prefix_2)
+                    
+                if answer_sp_or_hp == answer_headphones:
+                    print("[I] Headphones selected")
+                    #prog.ui.comboBox_sphp.setCurrentIndex(1)
+                    prog.comboBox_sphp_index_signal.emit(1)
+                    ser.write(select_eq_1)
+                    ser.flush()
+
+                    answer = ser.read_until(ack_eq_change)
+                    if answer[-13:] == ack_eq_change:
+                        print ("[A] ack_eq_change")
+                    else:
+                        print ("[E] ack_eq_change timeout")
+                    self.read_and_parse_values(request_eq_1_data_headphones, eq_1_data_headphones_prefix_1, eq_1_data_headphones_prefix_2)
+         
+            if prog.ui.comboBox_eq.currentText() == "Equalizer 2":
+                print("[I] Equalizer 2")
+                ser.write(question_if_sp_or_hp)
+                ser.flush()
+                
+                answer_sp_or_hp = ser.read_until(answer_sp_or_hp_prefix) #4
+                answer_sp_or_hp = answer_sp_or_hp_prefix + ser.read(4)
+                
+                #prog.ui.comboBox_eq.setCurrentIndex(1)
+                prog.comboBox_eq_index_signal.emit(1)
+                
+                if answer_sp_or_hp == answer_speakers:
+                    print("[I] Speakers selected")
+                    #prog.ui.comboBox_sphp.setCurrentIndex(0)
+                    prog.comboBox_sphp_index_signal.emit(0)
+                    ser.write(select_eq_2)
+                    ser.flush()
+                    answer = ser.read_until(ack_eq_change)
+                    if answer[-13:] == ack_eq_change:
+                        print ("[A] ack_eq_change")
+                    else:
+                        print ("[E] ack_eq_change timeout"  )
+                    self.read_and_parse_values(request_eq_2_data_speakers, eq_2_data_speakers_prefix_1, eq_2_data_speakers_prefix_2)
+                    
+                if answer_sp_or_hp == answer_headphones:
+                    print("[I] Headphones selected")
+                    #prog.ui.comboBox_sphp.setCurrentIndex(1)
+                    prog.comboBox_sphp_index_signal.emit(1)
+                    ser.write(select_eq_2)
+                    ser.flush()
+                    answer = ser.read_until(ack_eq_change)
+                    if answer[-13:] == ack_eq_change:
+                        print ("[A] ack_eq_change")
+                    else:
+                        print ("[E] ack_eq_change timeout")
+                    self.read_and_parse_values(request_eq_2_data_headphones, eq_2_data_headphones_prefix_1, eq_2_data_headphones_prefix_2)
+                
+                
+            if prog.ui.comboBox_eq.currentText() == "Equalizer 3":
+                print("[I] Equalizer 3")
+                ser.write(question_if_sp_or_hp)
+                ser.flush()
+                answer_sp_or_hp = ser.read_until(answer_sp_or_hp_prefix) #4
+                answer_sp_or_hp = answer_sp_or_hp_prefix + ser.read(4)
+                
+                #prog.ui.comboBox_eq.setCurrentIndex(2)
+                prog.comboBox_eq_index_signal.emit(2)
+                
+                if answer_sp_or_hp == answer_speakers:
+                    print("[I] Speakers selected")
+                    #prog.ui.comboBox_sphp.setCurrentIndex(0)
+                    prog.comboBox_sphp_index_signal.emit(0)
+                    ser.write(select_eq_3)
+                    ser.flush()
+                    answer = ser.read_until(ack_eq_change)
+                    if answer[-13:] == ack_eq_change:
+                        print ("[A] ack_eq_change")
+                    else:
+                        print ("[E] ack_eq_change timeout")
+                    self.read_and_parse_values(request_eq_3_data_speakers, eq_3_data_speakers_prefix_1, eq_3_data_speakers_prefix_2)
+                    
+                if answer_sp_or_hp == answer_headphones:
+                    print("[I] Headphones selected")
+                    #prog.ui.comboBox_sphp.setCurrentIndex(1)
+                    prog.comboBox_sphp_index_signal.emit(1)
+                    ser.write(select_eq_3)
+                    ser.flush()
+                    answer = ser.read_until(ack_eq_change)
+                    if answer[-13:] == ack_eq_change:
+                        print ("[A] ack_eq_change")
+                    else:
+                        print ("[E] ack_eq_change timeout")
+                    self.read_and_parse_values(request_eq_3_data_headphones, eq_3_data_headphones_prefix_1, eq_3_data_headphones_prefix_2)
+                    
+        time.sleep(0.5)
+        #button_thread.active = 1
+
+        # prog.ui.comboBox_eqonoff.setEnabled(1)
+        # prog.ui.comboBox_eq.setEnabled(1)        
+        # prog.ui.comboBox_sphp.setEnabled(1)    
+        
+        #prog.ui.waitingspinner.stop()
+        #prog.stop_spinner_signal.emit()
+        prog.waiting_spinner_signal.emit(0)
+        
+    def comboBox_sphp_changed(self):     
+        
+        #prog.ui.waitingspinner.start()
+        
+        print("-----")
+        
+        # prog.ui.comboBox_eqonoff.setEnabled(0)
+        # prog.ui.comboBox_eq.setEnabled(0)        
+        # prog.ui.comboBox_sphp.setEnabled(0)
+        # time.sleep(0.1)
+        # app.processEvents()
+        
+        # button_thread.active = 0
+        # while (button_thread.ready == 0):
+            # time.sleep(0.01)
+        # time.sleep(0.1)
+        
+        if prog.ui.comboBox_sphp.currentText() == "Speakers":
+            print("[I] Speakers selected")
+            ser.write(command_switch_to_speakers) 
+            ser.flush()
+            answer = ser.read_until(ack_sphp_change)                   #ack_sphp
+            if answer[-13:] == ack_sphp_change:
+                print ("[A] ack_sphp_change")
+            else:
+                print("[E] ack_sphp_change timeout")
+                
+            if prog.ui.comboBox_eqonoff.currentIndex() == 0:     #if eq is on
+            
+            
+                ser.write(question_which_eq_is_active)     ### crap?
+                ser.flush()
+                answer = ser.read_until(answer_eq_x_is_active_prefix) #4
+                answer = answer_eq_x_is_active_prefix + ser.read(1)
+                
+                if answer == answer_eq_1_is_active:
+                #if prog.ui.comboBox_eq.currentIndex()==0:
+                    print("[I] Equalizer 1")
+                    self.read_and_parse_values(request_eq_1_data_speakers, eq_1_data_speakers_prefix_1, eq_1_data_speakers_prefix_2)
+                
+                #if prog.ui.comboBox_eq.currentIndex()==1:
+                if answer == answer_eq_2_is_active:
+                    print("[I] Equalizer 2")
+                    self.read_and_parse_values(request_eq_2_data_speakers, eq_2_data_speakers_prefix_1, eq_2_data_speakers_prefix_2)
+                
+                #if prog.ui.comboBox_eq.currentIndex()==2:
+                if answer == answer_eq_3_is_active:
+                    print("[I] Equalizer 3")
+                    self.read_and_parse_values(request_eq_3_data_speakers, eq_3_data_speakers_prefix_1, eq_3_data_speakers_prefix_2)
+                
+     
+        if prog.ui.comboBox_sphp.currentText() == "Headphones":
+            print("[I] Headphones selected")
+            ser.write(command_switch_to_headphones) 
+            ser.flush()
+            answer = ser.read_until(ack_sphp_change)                   #ack_sphp
+            if answer[-13:] == ack_sphp_change:
+                print ("[A] ack_sphp_change")
+            else:
+                print("[E] ack_sphp_change timeout")
+        
+        
+            if prog.ui.comboBox_eqonoff.currentIndex() == 0:  #if eq is on
+            
+                ser.write(question_which_eq_is_active) ########################### crap?
+                ser.flush()
+                answer = ser.read_until(answer_eq_x_is_active_prefix) #4
+                answer = answer_eq_x_is_active_prefix + ser.read(1)
+                
+                #if prog.ui.comboBox_eq.currentIndex()==0:
+                if answer == answer_eq_1_is_active:
+                    print("[I] Equalizer 1")
+                    self.read_and_parse_values(request_eq_1_data_headphones, eq_1_data_headphones_prefix_1, eq_1_data_headphones_prefix_2)
+             
+                #if prog.ui.comboBox_eq.currentIndex()==1:
+                if answer == answer_eq_2_is_active:
+                    print("[I] Equalizer 2")
+                    self.read_and_parse_values(request_eq_2_data_headphones, eq_2_data_headphones_prefix_1, eq_2_data_headphones_prefix_2)
+                
+                #if prog.ui.comboBox_eq.currentIndex()==2:
+                if answer == answer_eq_3_is_active:
+                    print("[I] Equalizer 3")
+                    self.read_and_parse_values(request_eq_3_data_headphones, eq_3_data_headphones_prefix_1, eq_3_data_headphones_prefix_2)
+        
+
+        #time.sleep(3)
+        #button_thread.active = 1
+        time.sleep(2)
+        
+        # prog.ui.comboBox_sphp.setEnabled(1)
+        
+        # if prog.ui.comboBox_eqonoff.currentIndex() == 0:  #if eq is on
+            # prog.ui.comboBox_eq.setEnabled(1)
+            # prog.ui.comboBox_eqonoff.setEnabled(1)
+            
+        # if prog.ui.comboBox_eqonoff.currentIndex() == 1:  #if eq is off
+            # prog.ui.comboBox_eq.setEnabled(0)
+            # prog.ui.comboBox_eqonoff.setEnabled(1)
+        
+        #prog.ui.waitingspinner.stop()
+        prog.waiting_spinner_signal.emit(0)
+        
+        
+    def comboBox_eqonoff_changed(self): #check
+        
+        print("-----")
+        
+        if prog.ui.comboBox_eqonoff.currentText() == "Equalizer On":
+            #print("[I] Equalizer On")
+            prog.enable_disable_eq_combobox_signal.emit(1)
+            
+            ser.write(eq_on_command)
+            ser.flush()
+            answer = ser.read_until(answer_eq_on)
+            answer = ser.read_until(eq_ack)
+
+            prog.enable_sliders_signal.emit(1)
+            
+            self.initialize_gui()
+
+     
+        if prog.ui.comboBox_eqonoff.currentText() == "Equalizer Off":
+            
+            print("[I] Equalizer Off")
+            prog.enable_disable_eq_combobox_signal.emit(0)
+            #prog.ui.comboBox_eq.setEnabled(0)
+            ser.write(eq_off_command)
+            ser.flush()
+
+            #prog.comboBox_eqonoff_index_signal.emit(1)
+            #prog.enable_disable_eq_combobox_signal.emit(0)
+            
+            zerolist = [float(0)]*11
+            prog.connect_disconnect_sliders_signal.emit(0)
+            
+            prog.recieve_slider_values_signal.emit(zerolist)
+            prog.enable_sliders_signal.emit(0)
+            
+            prog.connect_disconnect_sliders_signal.emit(1)
+            
+            prog.hide_labels_signal.emit()
+            
+
+        time.sleep(0.5)    
+        prog.waiting_spinner_signal.emit(0)
+        
         
     def get_last_bytes(self, number):  
         end_items=bytes.fromhex("")
@@ -1251,73 +1309,100 @@ class button_thread_(threading.Thread):   # just a thread which reads serial and
     def run(self): 
     
         self.buffer_delete()
-        print("button thread started")
+        print("[I] thread started")
 
         while(self.loop==1): 
         
             time.sleep(0.00001) #doesnt run without? 
-            self.ready = 0
-                        
-            if self.active == 1:
-                          
-                try:
-                    if ser.in_waiting > 0:
-                        byte = ser.read(1)
-                        #if byte:
-                        self.buffer.append(byte)
-                except:
-                    print("serial port exception")      #when i resume from hibernation of my pc i get error messages about the serial port not beeing ready and so on.... 
-                    ser.close()                         #and this dirty fix works for me
-                    time.sleep(5)                       #and unlocks X4 again after hibernation
-                    open_serial_port()
-                    unlock_device()
-                    print("serial port exception end")
-                    
-            self.ready = 1
-            
-
+                                      
+            try:
+                if ser.in_waiting > 0:
+                    byte = ser.read(1)
+                    #if byte:
+                    self.buffer.append(byte)
+            except:
+                print("-----")
+                print("[E] serial port exception")      #when i resume from hibernation of my pc i get error messages about the serial port not beeing ready and so on.... 
+                ser.close()                         #and this dirty fix works for me
+                time.sleep(5)                       #and unlocks X4 again after hibernation
+                open_serial_port()
+                unlock_device()
+                print("[E] serial port exception end")
+                print("-----")    
 
             if self.get_last_bytes(5) == answer_eq_1_is_active:
-                #print("Button pressed -> Equalizer 1")
+                #print("[B] Button pressed -> Equalizer 1")
                 self.buffer_delete()
                 if prog.ui.comboBox_eqonoff.currentIndex() == 1:  #if eq off
-                    prog.ui.comboBox_eq.setCurrentIndex(0)
+                    #prog.ui.comboBox_eq.setCurrentIndex(0)
+                    prog.comboBox_eq_index_signal.emit(0)
                 
             if self.get_last_bytes(5) == answer_eq_2_is_active:
-                #print("Button pressed -> Equalizer 2")
+                #print("-----")
+                #print("[B] Button pressed -> Equalizer 2")
                 self.buffer_delete()
-                prog.ui.comboBox_eq.setCurrentIndex(1)
+                #prog.ui.comboBox_eq.setCurrentIndex(1)
+                prog.comboBox_eq_index_signal.emit(1)
                 
             if self.get_last_bytes(5) == answer_eq_3_is_active:
-                #print("Button pressed -> Equalizer 3")
+                #print("-----")
+                #print("[B] Button pressed -> Equalizer 3")
                 self.buffer_delete()
-                prog.ui.comboBox_eq.setCurrentIndex(2)
+                #prog.ui.comboBox_eq.setCurrentIndex(2)
+                prog.comboBox_eq_index_signal.emit(2)
                 
             if self.get_last_bytes(13) == eq_ack:
-                #print("Equalizer value changed acknowledge")
+                #print("[A] Equalizer value changed acknowledge")
                 self.buffer_delete()
 
             if self.get_last_bytes(16) == 2*answer_speakers:      #2x
-                #print("Button pressed -> Speakers")
+                #print("-----")
+                #print("[B] Button pressed -> Speakers")
                 self.buffer_delete()
-                prog.ui.comboBox_sphp.setCurrentIndex(0)
+                #prog.ui.comboBox_sphp.setCurrentIndex(0)
+                prog.comboBox_sphp_index_signal.emit(0)
                 
             if self.get_last_bytes(16) == 2*answer_headphones:    #2x
-                #print("Button pressed -> Headphones")
+                #print("-----")
+                #print("[B] Button pressed -> Headphones")
                 self.buffer_delete()
-                prog.ui.comboBox_sphp.setCurrentIndex(1)
-
+                #prog.ui.comboBox_sphp.setCurrentIndex(1)
+                prog.comboBox_sphp_index_signal.emit(1)
+                
             if self.get_last_bytes(11) == answer_eq_off:
-                #print("Button pressed -> Equalizer Off")
-                self.buffer_delete()
-                prog.ui.comboBox_eqonoff.setCurrentIndex(1)
+                if prog.ui.comboBox_eqonoff.currentIndex() == 0:  #if on
+                    #print("-----")
+                    #print("[B] Button pressed -> Equalizer Off")
+                    self.buffer_delete()
+                    #if prog.ui.comboBox_eqonoff.setCurrentIndex(1)
+                    prog.comboBox_eqonoff_index_signal.emit(1)
                 
             if self.get_last_bytes(11) == answer_eq_on:
-                #print("Button pressed -> Equalizer On")
+                #print("-----")
+                #print("[B] Button pressed -> Equalizer On")
                 self.buffer_delete()
-                prog.ui.comboBox_eqonoff.setCurrentIndex(0)
+                #prog.ui.comboBox_eqonoff.setCurrentIndex(0)
+                prog.comboBox_eqonoff_index_signal.emit(0)
      
+            
+            if self.eq_change == 1:
+                self.eq_change = 0
+                self.comboBox_eq_changed()
+    
+            if self.hpsp_change == 1:
+                self.hpsp_change = 0
+                self.comboBox_sphp_changed()
                 
+            if self.eq_onoff == 1:
+                self.eq_onoff = 0
+                self.comboBox_eqonoff_changed()
+                
+            if self.init_gui == 1:
+                self.init_gui = 0
+                self.initialize_gui()
+                
+                
+
         
         print("thread ended")
      
@@ -1341,18 +1426,26 @@ if __name__ == '__main__':
     ###########################
     open_serial_port()
     
-    print("Authenticate to the X4")
+    print("[+] Authenticate to the X4")
     unlock_device()
     
     ###########################
     
-    button_thread = button_thread_()    #Thread start
-    button_thread.daemon=True
-    button_thread.start()
+    # button_thread = button_thread_()    #Thread start
+    # button_thread.daemon=True
+    # button_thread.start()
+    
+    communications_thread = communications_thread_()
+    communications_thread.daemon=True
+    communications_thread.start()
     
     ############################
     
-    prog.initialize_gui()
+    #prog.initialize_gui()
+    prog.waiting_spinner_signal.emit(1) 
+    print("-----")
+    communications_thread.init_gui = 1
+    
     
     
 
@@ -1362,10 +1455,10 @@ if __name__ == '__main__':
            
     ###########################     #Thread stop
                                 
-    if (button_thread.is_alive()==True): #if defined and active
-        button_thread.loop=0
-        print("button thread getting closed")
-        button_thread.join()
+    if (communications_thread.is_alive()==True): #if defined and active
+        communications_thread.loop=0
+        print("[I] communications_thread getting closed")
+        communications_thread.join()
         
     print("exit")
     

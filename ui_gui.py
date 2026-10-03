@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'guioKIvqZ.ui'
+## Form generated from reading UI file 'guimVpiYu.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.11.2
 ##
@@ -20,6 +20,7 @@ from PySide6.QtWidgets import (QApplication, QComboBox, QFrame, QLabel,
 
 from dbhoverslider import DbHoverSlider
 from pyqtgraph import PlotWidget
+from spinner import WaitingSpinner
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -216,6 +217,9 @@ class Ui_MainWindow(object):
         self.label_16 = QLabel(self.centralwidget)
         self.label_16.setObjectName(u"label_16")
         self.label_16.setGeometry(QRect(600, 340, 41, 18))
+        self.waitingspinner = WaitingSpinner(self.centralwidget)
+        self.waitingspinner.setObjectName(u"waitingspinner")
+        self.waitingspinner.setGeometry(QRect(460, 370, 331, 51))
         MainWindow.setCentralWidget(self.centralwidget)
         self.EqView.raise_()
         self.label_preamp.raise_()
@@ -249,6 +253,7 @@ class Ui_MainWindow(object):
         self.label_15.raise_()
         self.label_16.raise_()
         self.verticalSlider_3.raise_()
+        self.waitingspinner.raise_()
 
         self.retranslateUi(MainWindow)
 

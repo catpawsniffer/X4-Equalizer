@@ -661,6 +661,16 @@
      <string>16kHz</string>
     </property>
    </widget>
+   <widget class="WaitingSpinner" name="waitingspinner" native="true">
+    <property name="geometry">
+     <rect>
+      <x>460</x>
+      <y>370</y>
+      <width>161</width>
+      <height>51</height>
+     </rect>
+    </property>
+   </widget>
    <zorder>EqView</zorder>
    <zorder>label_preamp</zorder>
    <zorder>line</zorder>
@@ -693,6 +703,7 @@
    <zorder>label_15</zorder>
    <zorder>label_16</zorder>
    <zorder>verticalSlider_3</zorder>
+   <zorder>waitingspinner</zorder>
   </widget>
  </widget>
  <customwidgets>
@@ -705,6 +716,12 @@
    <class>DbHoverSlider</class>
    <extends>QSlider</extends>
    <header>dbhoverslider</header>
+  </customwidget>
+  <customwidget>
+   <class>WaitingSpinner</class>
+   <extends>QWidget</extends>
+   <header>spinner</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>
