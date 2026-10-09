@@ -153,8 +153,6 @@ eq_off_command = bytes.fromhex("5a120701960900000000")
 eq_on_command =  bytes.fromhex("5a12070196090000803f")
 
 
-swmode1 = bytes.fromhex("53575f4d4f4445310d0a")
-start = bytes.fromhex("5a0300") #my guess
 
 
 ##################### X4 Serial Port Detect
@@ -264,15 +262,12 @@ def unlock_device():
     # Start with a clean input buffer.
     ser.reset_input_buffer()
     
-    #swmode1 =  [0x53, 0x57, 0x5f, 0x4d, 0x4f, 0x44, 0x45, 0x31, 0xd, 0xa]
-    #swmode1 = bytes.fromhex("53 57 5f 4d 4f 44 45 31 0d 0a")
-    #start = bytes.fromhex("5a 03 00")
-    #start = [0x5a, 0x03, 0x00]
-    #whoareyoumyapp = bytes.fromhex("77686f617265796f752e4d79417070380d0a")
-    
+    swmode1 = bytes.fromhex("53575f4d4f4445310d0a")
+    start = bytes.fromhex("5a0300") #my guess
     unknown_command = bytes.fromhex("55 6e 6b 6e 6f 77 6e 20 63 6f 6d 6d 61 6e 64 0d 0a")
     allgood = bytes.fromhex("5a 03 02 3b 00")  #??
-    greeting = b"whoareyou.MyApp8\r\n"
+    greeting = b"whoareyou.MyApp8\r\n"    
+
     
     print(f"[>] {start.hex()!r}")
     ser.write(start)
@@ -472,8 +467,8 @@ class MainWindow(QMainWindow):
         
         #print("x ", 820 -(641+20))
         #print("y ", 440 -(321+40))
-        self.ui.waitingspinner.offset_x = (159-40)/2   #119/2=59,5     #59
-        self.ui.waitingspinner.offset_y = (79-40)/2    #39/2=19.5      #20
+        self.ui.waitingspinner.offset_x = (159-40)/2   #119/2=59,5     #59.5    #why -40 ?
+        self.ui.waitingspinner.offset_y = (79-40)/2    #39/2=19.5      #19.5
          
         #self.ui.waitingspinner.start()
         
@@ -1321,6 +1316,7 @@ class communications_thread_(threading.Thread):   #
                     #if byte:
                     self.buffer.append(byte)
             except:
+                prog.waiting_spinner_signal.emit(1)
                 print("-----")
                 print("[E] serial port exception")      #when i resume from hibernation of my pc i get error messages about the serial port not beeing ready and so on.... 
                 ser.close()                         #and this dirty fix works for me
@@ -1328,7 +1324,8 @@ class communications_thread_(threading.Thread):   #
                 open_serial_port()
                 unlock_device()
                 print("[E] serial port exception end")
-                print("-----")    
+                print("-----") 
+                prog.waiting_spinner_signal.emit(0)
 
             if self.get_last_bytes(5) == answer_eq_1_is_active:
                 #print("[B] Button pressed -> Equalizer 1")
