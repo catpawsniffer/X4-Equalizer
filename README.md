@@ -1,4 +1,4 @@
-﻿# X4 Equalizer for Linux🐧
+﻿# Soundblaster X4 Equalizer for Linux🐧
 
 **A simple Python Program with Gui to Control the Equalizer of the X4 Soundblaster**
 
